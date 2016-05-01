@@ -8,6 +8,9 @@
 #define DATE_ANIMATION_DURATION_OUT (200)
 #define DATE_VISIBILITY_DURATION (4000)
 
+
+// Hello from CloudPebble.
+
 static Window *s_main_window;
 static BitmapLayer *s_background_layers[4];
 static GBitmap *s_background_bitmap;

@@ -21,20 +21,20 @@ static GRect date_frame_offscreen;
 
 bool dateIsAnimating = 0;
 
-// for the battery meter
-static Layer *s_battery_layer;
+static Layer *s_battery_meter_layer;
+static TextLayer *s_battery_percent_layer;
 static int s_battery_level;
 
 // https://developer.pebble.com/tutorials/intermediate/add-battery/
 static void battery_callback(BatteryChargeState state) {
-  // Record the new battery level
   s_battery_level = state.charge_percent;
   
-  // Update meter
-layer_mark_dirty(s_battery_layer);
+  layer_mark_dirty(s_battery_meter_layer);
+  layer_mark_dirty(text_layer_get_layer(s_battery_percent_layer));
 
 }
-static void battery_update_proc(Layer *layer, GContext *ctx) {
+
+static void battery_meter_update_proc(Layer *layer, GContext *ctx) {
   GRect bounds = layer_get_bounds(layer);
   
   int batt = s_battery_level;
@@ -53,6 +53,13 @@ static void battery_update_proc(Layer *layer, GContext *ctx) {
   GRect theBar = GRect(0, bounds.size.h-barThickness, barWidth, barThickness); // x, y, w, h
   graphics_fill_rect(ctx, theBar, 0, GCornerNone);
 }
+
+static void battery_percent_update_proc(Layer *layer, GContext *ctx) {
+  static char buffer[4];
+  snprintf(buffer, sizeof(buffer), "%d%%", s_battery_level);
+  text_layer_set_text(s_date_layer, buffer);
+}
+  
 
 
 
@@ -130,10 +137,6 @@ static void main_window_load(Window *window) {
 
   Layer *needle_layer = layer_create(bounds);
   layer_set_update_proc(needle_layer, needle_layer_update_proc);
-  
-  // Create battery meter Layer
-  s_battery_layer = layer_create(bounds);
-  layer_set_update_proc(s_battery_layer, battery_update_proc);
 
   s_background_bitmap = gbitmap_create_with_resource(RESOURCE_ID_BACKGROUND);
   for (unsigned i = 0; i < ARRAY_LENGTH(s_background_layers); i++) {
@@ -152,9 +155,20 @@ static void main_window_load(Window *window) {
   text_layer_set_font(s_date_layer, date_font);
   text_layer_set_background_color(s_date_layer, GColorBlack);
 
+  s_battery_meter_layer = layer_create(bounds);
+  layer_set_update_proc(s_battery_meter_layer, battery_meter_update_proc);
+  
+  s_battery_percent_layer = text_layer_create(GRect(10, 10, 60, 60));
+  text_layer_set_text_color(s_battery_percent_layer, GColorWhite);
+  text_layer_set_background_color(s_battery_percent_layer, GColorClear);
+  text_layer_set_text_alignment(s_battery_percent_layer, GTextAlignmentLeft);
+  text_layer_set_font(s_date_layer, date_font);
+  layer_set_update_proc(text_layer_get_layer(s_battery_percent_layer), battery_percent_update_proc);
+  
   layer_add_child(window_layer, needle_layer);
   layer_add_child(window_layer, (Layer*) s_date_layer);
-  layer_add_child(window_get_root_layer(window), s_battery_layer);
+  layer_add_child(window_layer, s_battery_meter_layer);
+  layer_add_child(window_layer, text_layer_get_layer(s_battery_percent_layer));
 
 }
 
@@ -164,7 +178,8 @@ static void main_window_unload(Window *window) {
   }
   gbitmap_destroy(s_background_bitmap);
   text_layer_destroy(s_date_layer);
-  layer_destroy(s_battery_layer);
+  layer_destroy(s_battery_meter_layer);
+  text_layer_destroy(s_battery_percent_layer);
 
 }
 

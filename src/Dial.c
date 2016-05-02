@@ -21,6 +21,42 @@ static GRect date_frame_offscreen;
 
 bool dateIsAnimating = 0;
 
+// for the battery meter
+static Layer *s_battery_layer;
+static int s_battery_level;
+
+// https://developer.pebble.com/tutorials/intermediate/add-battery/
+static void battery_callback(BatteryChargeState state) {
+  // Record the new battery level
+  s_battery_level = state.charge_percent;
+  
+  // Update meter
+layer_mark_dirty(s_battery_layer);
+
+}
+static void battery_update_proc(Layer *layer, GContext *ctx) {
+  GRect bounds = layer_get_bounds(layer);
+  
+  int batt = s_battery_level;
+  
+  GColor theColor = GColorRed;
+  
+  if(batt >= 10) theColor = GColorOrange;
+  if(batt >= 30) theColor = GColorGreen;
+
+
+  graphics_context_set_fill_color(ctx, theColor);
+  
+
+  int barWidth = batt * bounds.size.w / 100; //can't use floating point numbers!
+  int barThickness = 3;
+  GRect theBar = GRect(0, bounds.size.h-barThickness, barWidth, barThickness); // x, y, w, h
+  graphics_fill_rect(ctx, theBar, 0, GCornerNone);
+}
+
+
+
+
 static const char *days_of_week[] = {
   "SUN",
   "MON",
@@ -70,7 +106,7 @@ static void draw_clock(struct tm *tick_time) {
 static void draw_date(struct tm *tick_time) {
   static char buffer[7];
   snprintf(buffer, sizeof(buffer), "%s %d", days_of_week[tick_time->tm_wday], tick_time->tm_mday);
-  APP_LOG(APP_LOG_LEVEL_DEBUG, buffer);
+  //APP_LOG(APP_LOG_LEVEL_DEBUG, buffer);
   text_layer_set_text(s_date_layer, buffer);
 }
 
@@ -94,6 +130,10 @@ static void main_window_load(Window *window) {
 
   Layer *needle_layer = layer_create(bounds);
   layer_set_update_proc(needle_layer, needle_layer_update_proc);
+  
+  // Create battery meter Layer
+  s_battery_layer = layer_create(bounds);
+  layer_set_update_proc(s_battery_layer, battery_update_proc);
 
   s_background_bitmap = gbitmap_create_with_resource(RESOURCE_ID_BACKGROUND);
   for (unsigned i = 0; i < ARRAY_LENGTH(s_background_layers); i++) {
@@ -114,6 +154,8 @@ static void main_window_load(Window *window) {
 
   layer_add_child(window_layer, needle_layer);
   layer_add_child(window_layer, (Layer*) s_date_layer);
+  layer_add_child(window_get_root_layer(window), s_battery_layer);
+
 }
 
 static void main_window_unload(Window *window) {
@@ -122,6 +164,8 @@ static void main_window_unload(Window *window) {
   }
   gbitmap_destroy(s_background_bitmap);
   text_layer_destroy(s_date_layer);
+  layer_destroy(s_battery_layer);
+
 }
 
 static void init() {
@@ -139,6 +183,12 @@ static void init() {
 
   tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
   accel_tap_service_subscribe(tap_handler);
+  
+  battery_state_service_subscribe(battery_callback);
+  
+  // Ensure battery level is displayed from the start
+  battery_callback(battery_state_service_peek());
+
 }
 
 static void deinit() {

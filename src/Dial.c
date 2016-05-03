@@ -22,6 +22,7 @@ static GRect batt_bar_frame_onscreen, batt_bar_frame_offscreen;
 static GRect batt_percent_frame_onscreen, batt_percent_frame_offscreen;
 
 bool isAnimating = 0;
+static int last_mins_since_midnight = 0;
 
 static const char *days_of_week[] = {"SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"};
 static const int NEEDLE_X_START = SCREEN_WIDTH / 2 - 1;
@@ -52,7 +53,7 @@ static void batt_bar_update_proc(Layer *layer, GContext *ctx) {
 }
 
 
-static void date_animation_stopped_handler(Animation *animation, bool finished, void *context) {
+static void animation_stopped_handler(Animation *animation, bool finished, void *context) {
     isAnimating = 0;
 }
 
@@ -86,8 +87,11 @@ static void animate_batt_percent(){
     animation_schedule((Animation*) out);
 }
 
-/** Called by tap_handler(). */
-static void run_animation() {
+/**
+ * Assigned in init().
+ * Calls animate_date().
+ */
+static void tap_handler(AccelAxisType axis, int32_t direction) {
     if (isAnimating) return;
     isAnimating = 1;
     
@@ -105,39 +109,10 @@ static void run_animation() {
     animation_set_duration((Animation*) out, DATE_ANIMATION_DURATION_OUT);
     animation_set_delay((Animation*) out, DATE_VISIBILITY_DURATION);
     animation_set_handlers((Animation*) out, (AnimationHandlers) {
-        .stopped = date_animation_stopped_handler
+        .stopped = animation_stopped_handler
     }, NULL);
     animation_set_curve((Animation*) out, AnimationCurveEaseIn);
     animation_schedule((Animation*) out);
-}
-
-
-/** Called by tick_handler(). */
-static void draw_clock(struct tm *tick_time) {
-    const int64_t mins_since_midnight = tick_time->tm_hour * 60 + tick_time->tm_min;
-    const int64_t background_x_offset = mins_since_midnight * BACKGROUND_WIDTH * 2 / MINUTES_PER_DAY;
-    
-    for (int i = 0; i < 4; i++) {
-        GRect frame = GRect((-background_x_offset) + (SCREEN_WIDTH / 2) + BACKGROUND_WIDTH * (i - 1), 0, BACKGROUND_WIDTH, SCREEN_HEIGHT);
-        layer_set_frame(bitmap_layer_get_layer(s_background_layers[i]), frame);
-    }
-}
-
-/** Called by tick_handler(). */
-static void draw_date(struct tm *tick_time) {
-    static char buffer[7];
-    snprintf(buffer, sizeof(buffer), "%s %d", days_of_week[tick_time->tm_wday], tick_time->tm_mday);
-    //APP_LOG(APP_LOG_LEVEL_DEBUG, buffer);
-    text_layer_set_text(s_date_layer, buffer);
-}
-
-
-/**
- * Assigned in init().
- * Calls animate_date().
- */
-static void tap_handler(AccelAxisType axis, int32_t direction) {
-    run_animation();
 }
 
 
@@ -145,9 +120,24 @@ static void tap_handler(AccelAxisType axis, int32_t direction) {
  * Assigned in init().
  * Calls draw_clock() and draw_date().
  */
-static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
-    draw_clock(tick_time);
-    draw_date(tick_time);
+static void tick_handler_minute(struct tm *tick_time, TimeUnits units_changed) {
+    const int mins_since_midnight = tick_time->tm_hour * 60 + tick_time->tm_min;
+    const int background_x_offset = mins_since_midnight * BACKGROUND_WIDTH * 2 / MINUTES_PER_DAY;
+    
+    for (int i = 0; i < 4; i++) {
+        GRect frame = GRect((-background_x_offset) + (SCREEN_WIDTH / 2) + BACKGROUND_WIDTH * (i - 1), 0, BACKGROUND_WIDTH, SCREEN_HEIGHT);
+        layer_set_frame(bitmap_layer_get_layer(s_background_layers[i]), frame);
+    }
+}
+
+/**
+ * Assigned in init().
+ * Calls draw_clock() and draw_date().
+ */
+static void tick_handler_day(struct tm *tick_time, TimeUnits units_changed) {
+    static char buffer[7];
+    snprintf(buffer, sizeof(buffer), "%s %d", days_of_week[tick_time->tm_wday], tick_time->tm_mday);
+    text_layer_set_text(s_date_layer, buffer);
 }
 
 
@@ -250,10 +240,11 @@ static void init() {
     window_stack_push(s_main_window, true);
     
     time_t current_time = time(NULL);
-    draw_clock(localtime(&current_time));
-    draw_date(localtime(&current_time));
+    tick_handler_minute(localtime(&current_time), 0);
+    tick_handler_day(localtime(&current_time), 0);
     
-    tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
+    tick_timer_service_subscribe(MINUTE_UNIT, tick_handler_minute);
+    tick_timer_service_subscribe(DAY_UNIT, tick_handler_day);
     accel_tap_service_subscribe(tap_handler);
     battery_state_service_subscribe(batt_handler);
     

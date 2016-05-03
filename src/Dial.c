@@ -149,26 +149,35 @@ static void needle_layer_update_proc(Layer *layer, GContext *ctx) {
 }
 
 
-static void draw_event_mark(GContext *ctx, int event_time){
+static void draw_event_mark(GContext *ctx, int event_time_start, int event_time_end){
     
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "event_time is %d", event_time);
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "current time is %d", last_mins_since_midnight);
-    
-    int difference = event_time - last_mins_since_midnight;
-    
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "difference is %d", difference);
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "------------------------");
+    //APP_LOG(APP_LOG_LEVEL_DEBUG, "event_time is %d", event_time);
+    //APP_LOG(APP_LOG_LEVEL_DEBUG, "current time is %d", last_mins_since_midnight);
+    //APP_LOG(APP_LOG_LEVEL_DEBUG, "difference is %d", difference);
+    //APP_LOG(APP_LOG_LEVEL_DEBUG, "------------------------");
 
     // http://stackoverflow.com/a/9772491
     //int abs = difference * ((difference>0) - (difference<0));
     
-    GRect bounds = layer_get_bounds(s_event_mark_layer);
+    int difference_now_start = event_time_start - last_mins_since_midnight;
+    int difference_now_end = event_time_end - last_mins_since_midnight;
+    
+    int x_start = NEEDLE_X_START + difference_now_start*2 - 1 - 2;
+    int x_end   = NEEDLE_X_START + difference_now_end*2 - 1 - 2;
+    
+    
+    #define MARK_HEIGHT 10
+    #define MARK_THICKNESS 2
+    
+    //GRect bounds = layer_get_bounds(s_event_mark_layer);
     graphics_context_set_fill_color(ctx, GColorCyan);
-    graphics_fill_rect(ctx, GRect(NEEDLE_X_START + difference*2, 0, 2, bounds.size.h), 0, GCornerNone);
+    graphics_fill_rect(ctx, GRect(x_start, -MARK_HEIGHT-1, MARK_THICKNESS, MARK_HEIGHT), 0, GCornerNone);
+    graphics_fill_rect(ctx, GRect(x_end,   -MARK_HEIGHT-1, MARK_THICKNESS, MARK_HEIGHT), 0, GCornerNone);
+    graphics_fill_rect(ctx, GRect(x_start, -MARK_HEIGHT-1, x_end-x_start, MARK_THICKNESS), 0, GCornerNone);
 }
 
 static void event_mark_update_proc(Layer *layer, GContext *ctx) {
-    draw_event_mark(ctx, 60*(12+3) + 30);
+    draw_event_mark(ctx, 60*(12+4) + 10, 60*(12+4) + 30);
 }
 
 static void main_window_load(Window *window) {
@@ -196,6 +205,7 @@ static void main_window_load(Window *window) {
     // EVENT MARK
     s_event_mark_layer = layer_create(GRect(0, 84, SCREEN_WIDTH, 21));
     layer_set_update_proc(s_event_mark_layer, event_mark_update_proc);
+    layer_set_clips(s_event_mark_layer, false);
     layer_add_child(window_layer, s_event_mark_layer);
     
     

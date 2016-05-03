@@ -15,12 +15,15 @@ static Window *s_main_window;
 static BitmapLayer *s_background_layers[4];
 static GBitmap *s_background_bitmap;
 static TextLayer *s_date_layer, *s_battery_percent_layer;
+static Layer *s_battery_meter_layer;
 
 static GRect date_frame_onscreen, date_frame_offscreen;
+static GRect battery_meter_frame_onscreen, battery_meter_frame_offscreen;
+static GRect battery_percent_frame_onscreen, battery_percent_frame_offscreen;
 
-bool dateIsAnimating = 0;
+bool isAnimating = 0;
 
-static Layer *s_battery_meter_layer;
+
 static int s_battery_level;
 
 // https://developer.pebble.com/tutorials/intermediate/add-battery/
@@ -46,7 +49,8 @@ static void battery_meter_update_proc(Layer *layer, GContext *ctx) {
     graphics_context_set_fill_color(ctx, theColor);
     
     int barWidth = batt * SCREEN_WIDTH / 100; //can't use floating point numbers!
-    GRect theBar = GRect(0, SCREEN_HEIGHT-BAR_THICKNESS, barWidth, BAR_THICKNESS); // x, y, w, h
+    //GRect theBar = GRect(0, SCREEN_HEIGHT-BAR_THICKNESS, barWidth, BAR_THICKNESS); // x, y, w, h
+    GRect theBar = GRect(0, 0, barWidth, BAR_THICKNESS); // x, y, w, h
     graphics_fill_rect(ctx, theBar, 0, GCornerNone);
 }
 
@@ -62,13 +66,46 @@ static const char *days_of_week[] = {
 };
 
 static void date_animation_stopped_handler(Animation *animation, bool finished, void *context) {
-    dateIsAnimating = 0;
+    isAnimating = 0;
+}
+
+static void animate_battery_meter(){
+    PropertyAnimation *in = property_animation_create_layer_frame(
+        (Layer*) s_battery_meter_layer, &battery_meter_frame_offscreen, &battery_meter_frame_onscreen);
+    animation_set_duration((Animation*) in, DATE_ANIMATION_DURATION_IN);
+    animation_set_curve((Animation*) in, AnimationCurveEaseInOut);
+    animation_schedule((Animation*) in);
+    
+    PropertyAnimation *out = property_animation_create_layer_frame(
+        (Layer*) s_battery_meter_layer, &battery_meter_frame_onscreen, &battery_meter_frame_offscreen);
+    animation_set_duration((Animation*) out, DATE_ANIMATION_DURATION_OUT);
+    animation_set_delay((Animation*) out, DATE_VISIBILITY_DURATION);
+    animation_set_curve((Animation*) out, AnimationCurveEaseIn);
+    animation_schedule((Animation*) out);
+}
+
+static void animate_battery_percent(){
+    PropertyAnimation *in = property_animation_create_layer_frame(
+        (Layer*) s_battery_percent_layer, &battery_percent_frame_offscreen, &battery_percent_frame_onscreen);
+    animation_set_duration((Animation*) in, DATE_ANIMATION_DURATION_IN);
+    animation_set_curve((Animation*) in, AnimationCurveEaseInOut);
+    animation_schedule((Animation*) in);
+    
+    PropertyAnimation *out = property_animation_create_layer_frame(
+        (Layer*) s_battery_percent_layer, &battery_percent_frame_onscreen, &battery_percent_frame_offscreen);
+    animation_set_duration((Animation*) out, DATE_ANIMATION_DURATION_OUT);
+    animation_set_delay((Animation*) out, DATE_VISIBILITY_DURATION);
+    animation_set_curve((Animation*) out, AnimationCurveEaseIn);
+    animation_schedule((Animation*) out);
 }
 
 /** Called by tap_handler(). */
-static void animate_date() {
-    if (dateIsAnimating) return;
-    dateIsAnimating = 1;
+static void run_animation() {
+    if (isAnimating) return;
+    isAnimating = 1;
+    
+    animate_battery_meter();
+    animate_battery_percent();
     
     PropertyAnimation *in = property_animation_create_layer_frame(
         (Layer*) s_date_layer, &date_frame_offscreen, &date_frame_onscreen);
@@ -86,6 +123,8 @@ static void animate_date() {
     animation_set_curve((Animation*) out, AnimationCurveEaseIn);
     animation_schedule((Animation*) out);
 }
+
+
 
 
 /** Called by tick_handler(). */
@@ -114,7 +153,7 @@ static void draw_date(struct tm *tick_time) {
  * Calls animate_date().
  */
 static void tap_handler(AccelAxisType axis, int32_t direction) {
-    animate_date();
+    run_animation();
 }
 
 
@@ -140,6 +179,15 @@ static void main_window_load(Window *window) {
     GRect bounds = layer_get_bounds(window_layer);
     
     
+    date_frame_onscreen = GRect(SCREEN_WIDTH / 2 + 2, PBL_IF_ROUND_ELSE(30, 20), PBL_IF_ROUND_ELSE(67, SCREEN_WIDTH / 2 - 2), 15);
+    date_frame_offscreen = (GRect) { .origin = GPoint(date_frame_onscreen.origin.x, -50), .size = date_frame_onscreen.size };
+    
+    battery_meter_frame_onscreen = GRect(0, SCREEN_HEIGHT-BAR_THICKNESS, SCREEN_WIDTH, BAR_THICKNESS);
+    battery_meter_frame_offscreen = (GRect) { .origin = GPoint(battery_meter_frame_onscreen.origin.x, SCREEN_HEIGHT+30), .size = battery_meter_frame_onscreen.size };
+    
+    battery_percent_frame_onscreen = GRect(3, SCREEN_HEIGHT-BAR_THICKNESS-20, 50, 20);
+    battery_percent_frame_offscreen = (GRect) { .origin = GPoint(battery_percent_frame_onscreen.origin.x, SCREEN_HEIGHT+30), .size = battery_percent_frame_onscreen.size };
+    
     // BACKGROUND
     s_background_bitmap = gbitmap_create_with_resource(RESOURCE_ID_BACKGROUND);
     for (unsigned i = 0; i < ARRAY_LENGTH(s_background_layers); i++) {
@@ -156,8 +204,6 @@ static void main_window_load(Window *window) {
     
     
     // DATE
-    date_frame_onscreen = GRect(SCREEN_WIDTH / 2 + 2, PBL_IF_ROUND_ELSE(30, 20), PBL_IF_ROUND_ELSE(67, SCREEN_WIDTH / 2 - 2), 15);
-    date_frame_offscreen = (GRect) { .origin = GPoint(date_frame_onscreen.origin.x, -50), .size = date_frame_onscreen.size };
     GFont date_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_MEDIUM_14));
     s_date_layer = text_layer_create(date_frame_offscreen);
     text_layer_set_text_alignment(s_date_layer, GTextAlignmentCenter);
@@ -168,13 +214,13 @@ static void main_window_load(Window *window) {
     
     
     // BATTERY METER
-    s_battery_meter_layer = layer_create(bounds);
+    s_battery_meter_layer = layer_create(battery_meter_frame_offscreen);
     layer_set_update_proc(s_battery_meter_layer, battery_meter_update_proc);
     layer_add_child(window_layer, s_battery_meter_layer);
     
     
     // BATTERY PERCENT
-    s_battery_percent_layer = text_layer_create(GRect(0, SCREEN_HEIGHT-BAR_THICKNESS-20, 50, 20)); // x, y, w, h
+    s_battery_percent_layer = text_layer_create(battery_percent_frame_offscreen);
     text_layer_set_text(s_battery_percent_layer, "000%");
     text_layer_set_font(s_battery_percent_layer, date_font);
     text_layer_set_text_alignment(s_battery_percent_layer, GTextAlignmentLeft);

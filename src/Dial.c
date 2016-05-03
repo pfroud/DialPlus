@@ -14,35 +14,35 @@
 static Window *s_main_window;
 static BitmapLayer *s_background_layers[4];
 static GBitmap *s_background_bitmap;
-static TextLayer *s_date_layer, *s_battery_percent_layer;
-static Layer *s_battery_meter_layer;
+static TextLayer *s_date_layer, *s_batt_percent_layer;
+static Layer *s_batt_bar_layer;
 
 static GRect date_frame_onscreen, date_frame_offscreen;
-static GRect battery_meter_frame_onscreen, battery_meter_frame_offscreen;
-static GRect battery_percent_frame_onscreen, battery_percent_frame_offscreen;
+static GRect batt_bar_frame_onscreen, batt_bar_frame_offscreen;
+static GRect batt_percent_frame_onscreen, batt_percent_frame_offscreen;
 
 bool isAnimating = 0;
 
 
-static int s_battery_level;
+static int s_batt_level;
 
-// https://developer.pebble.com/tutorials/intermediate/add-battery/
+// https://developer.pebble.com/tutorials/intermediate/add-batt/
 
 
-static void battery_handler(BatteryChargeState state) {
-    s_battery_level = state.charge_percent;
+static void batt_handler(BatteryChargeState state) {
+    s_batt_level = state.charge_percent;
     
     static char buffer[5];
-    snprintf(buffer, sizeof(buffer), "%d%%", s_battery_level);
-    text_layer_set_text(s_battery_percent_layer, buffer);
+    snprintf(buffer, sizeof(buffer), "%d%%", s_batt_level);
+    text_layer_set_text(s_batt_percent_layer, buffer);
     
-    layer_mark_dirty(s_battery_meter_layer);
-    layer_mark_dirty(text_layer_get_layer(s_battery_percent_layer));
+    layer_mark_dirty(s_batt_bar_layer);
+    layer_mark_dirty(text_layer_get_layer(s_batt_percent_layer));
 
 }
 
-static void battery_meter_update_proc(Layer *layer, GContext *ctx) {
-    int batt = s_battery_level;
+static void batt_bar_update_proc(Layer *layer, GContext *ctx) {
+    int batt = s_batt_level;
     GColor theColor = GColorRed;
     if(batt >= 20) theColor = GColorYellow;
     if(batt >= 40) theColor = GColorGreen;
@@ -69,30 +69,30 @@ static void date_animation_stopped_handler(Animation *animation, bool finished, 
     isAnimating = 0;
 }
 
-static void animate_battery_meter(){
+static void animate_batt_bar(){
     PropertyAnimation *in = property_animation_create_layer_frame(
-        (Layer*) s_battery_meter_layer, &battery_meter_frame_offscreen, &battery_meter_frame_onscreen);
+        (Layer*) s_batt_bar_layer, &batt_bar_frame_offscreen, &batt_bar_frame_onscreen);
     animation_set_duration((Animation*) in, DATE_ANIMATION_DURATION_IN);
     animation_set_curve((Animation*) in, AnimationCurveEaseInOut);
     animation_schedule((Animation*) in);
     
     PropertyAnimation *out = property_animation_create_layer_frame(
-        (Layer*) s_battery_meter_layer, &battery_meter_frame_onscreen, &battery_meter_frame_offscreen);
+        (Layer*) s_batt_bar_layer, &batt_bar_frame_onscreen, &batt_bar_frame_offscreen);
     animation_set_duration((Animation*) out, DATE_ANIMATION_DURATION_OUT);
     animation_set_delay((Animation*) out, DATE_VISIBILITY_DURATION);
     animation_set_curve((Animation*) out, AnimationCurveEaseIn);
     animation_schedule((Animation*) out);
 }
 
-static void animate_battery_percent(){
+static void animate_batt_percent(){
     PropertyAnimation *in = property_animation_create_layer_frame(
-        (Layer*) s_battery_percent_layer, &battery_percent_frame_offscreen, &battery_percent_frame_onscreen);
+        (Layer*) s_batt_percent_layer, &batt_percent_frame_offscreen, &batt_percent_frame_onscreen);
     animation_set_duration((Animation*) in, DATE_ANIMATION_DURATION_IN);
     animation_set_curve((Animation*) in, AnimationCurveEaseInOut);
     animation_schedule((Animation*) in);
     
     PropertyAnimation *out = property_animation_create_layer_frame(
-        (Layer*) s_battery_percent_layer, &battery_percent_frame_onscreen, &battery_percent_frame_offscreen);
+        (Layer*) s_batt_percent_layer, &batt_percent_frame_onscreen, &batt_percent_frame_offscreen);
     animation_set_duration((Animation*) out, DATE_ANIMATION_DURATION_OUT);
     animation_set_delay((Animation*) out, DATE_VISIBILITY_DURATION);
     animation_set_curve((Animation*) out, AnimationCurveEaseIn);
@@ -104,8 +104,8 @@ static void run_animation() {
     if (isAnimating) return;
     isAnimating = 1;
     
-    animate_battery_meter();
-    animate_battery_percent();
+    animate_batt_bar();
+    animate_batt_percent();
     
     PropertyAnimation *in = property_animation_create_layer_frame(
         (Layer*) s_date_layer, &date_frame_offscreen, &date_frame_onscreen);
@@ -182,11 +182,11 @@ static void main_window_load(Window *window) {
     date_frame_onscreen = GRect(SCREEN_WIDTH / 2 + 2, PBL_IF_ROUND_ELSE(30, 20), PBL_IF_ROUND_ELSE(67, SCREEN_WIDTH / 2 - 2), 15);
     date_frame_offscreen = (GRect) { .origin = GPoint(date_frame_onscreen.origin.x, -50), .size = date_frame_onscreen.size };
     
-    battery_meter_frame_onscreen = GRect(0, SCREEN_HEIGHT-BAR_THICKNESS, SCREEN_WIDTH, BAR_THICKNESS);
-    battery_meter_frame_offscreen = (GRect) { .origin = GPoint(battery_meter_frame_onscreen.origin.x, SCREEN_HEIGHT+30), .size = battery_meter_frame_onscreen.size };
+    batt_bar_frame_onscreen = GRect(0, SCREEN_HEIGHT-BAR_THICKNESS, SCREEN_WIDTH, BAR_THICKNESS);
+    batt_bar_frame_offscreen = (GRect) { .origin = GPoint(batt_bar_frame_onscreen.origin.x, SCREEN_HEIGHT+30), .size = batt_bar_frame_onscreen.size };
     
-    battery_percent_frame_onscreen = GRect(3, SCREEN_HEIGHT-BAR_THICKNESS-20, 50, 20);
-    battery_percent_frame_offscreen = (GRect) { .origin = GPoint(battery_percent_frame_onscreen.origin.x, SCREEN_HEIGHT+30), .size = battery_percent_frame_onscreen.size };
+    batt_percent_frame_onscreen = GRect(3, SCREEN_HEIGHT-BAR_THICKNESS-20, 50, 20);
+    batt_percent_frame_offscreen = (GRect) { .origin = GPoint(batt_percent_frame_onscreen.origin.x, SCREEN_HEIGHT+30), .size = batt_percent_frame_onscreen.size };
     
     // BACKGROUND
     s_background_bitmap = gbitmap_create_with_resource(RESOURCE_ID_BACKGROUND);
@@ -213,20 +213,20 @@ static void main_window_load(Window *window) {
     layer_add_child(window_layer, (Layer*) s_date_layer);
     
     
-    // BATTERY METER
-    s_battery_meter_layer = layer_create(battery_meter_frame_offscreen);
-    layer_set_update_proc(s_battery_meter_layer, battery_meter_update_proc);
-    layer_add_child(window_layer, s_battery_meter_layer);
+    // batt bar
+    s_batt_bar_layer = layer_create(batt_bar_frame_offscreen);
+    layer_set_update_proc(s_batt_bar_layer, batt_bar_update_proc);
+    layer_add_child(window_layer, s_batt_bar_layer);
     
     
-    // BATTERY PERCENT
-    s_battery_percent_layer = text_layer_create(battery_percent_frame_offscreen);
-    text_layer_set_text(s_battery_percent_layer, "000%");
-    text_layer_set_font(s_battery_percent_layer, date_font);
-    text_layer_set_text_alignment(s_battery_percent_layer, GTextAlignmentLeft);
-    text_layer_set_background_color(s_battery_percent_layer, GColorClear);
-    text_layer_set_text_color(s_battery_percent_layer, GColorWhite);
-    layer_add_child(window_layer, text_layer_get_layer(s_battery_percent_layer));
+    // batt PERCENT
+    s_batt_percent_layer = text_layer_create(batt_percent_frame_offscreen);
+    text_layer_set_text(s_batt_percent_layer, "000%");
+    text_layer_set_font(s_batt_percent_layer, date_font);
+    text_layer_set_text_alignment(s_batt_percent_layer, GTextAlignmentLeft);
+    text_layer_set_background_color(s_batt_percent_layer, GColorClear);
+    text_layer_set_text_color(s_batt_percent_layer, GColorWhite);
+    layer_add_child(window_layer, text_layer_get_layer(s_batt_percent_layer));
 
 }
 
@@ -236,8 +236,8 @@ static void main_window_unload(Window *window) {
     }
     gbitmap_destroy(s_background_bitmap);
     text_layer_destroy(s_date_layer);
-    text_layer_destroy(s_battery_percent_layer);
-    layer_destroy(s_battery_meter_layer);
+    text_layer_destroy(s_batt_percent_layer);
+    layer_destroy(s_batt_bar_layer);
 
 }
 
@@ -256,10 +256,10 @@ static void init() {
     
     tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
     accel_tap_service_subscribe(tap_handler);
-    battery_state_service_subscribe(battery_handler);
+    battery_state_service_subscribe(batt_handler);
     
-    // Ensure battery level is displayed from the start
-    battery_handler(battery_state_service_peek());
+    // Ensure batt level is displayed from the start
+    batt_handler(battery_state_service_peek());
 
 }
 

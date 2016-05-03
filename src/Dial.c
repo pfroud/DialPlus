@@ -8,6 +8,8 @@
 #define DATE_ANIMATION_DURATION_OUT (200)
 #define DATE_VISIBILITY_DURATION (4000)
 
+# define BAR_THICKNESS 2
+
 
 static Window *s_main_window;
 static BitmapLayer *s_background_layers[4];
@@ -37,17 +39,14 @@ static void battery_handler(BatteryChargeState state) {
 }
 
 static void battery_meter_update_proc(Layer *layer, GContext *ctx) {
-    GRect bounds = layer_get_bounds(layer);
-    
     int batt = s_battery_level;
     GColor theColor = GColorRed;
     if(batt >= 20) theColor = GColorYellow;
     if(batt >= 40) theColor = GColorGreen;
     graphics_context_set_fill_color(ctx, theColor);
     
-    int barWidth = batt * bounds.size.w / 100; //can't use floating point numbers!
-    int barThickness = 3;
-    GRect theBar = GRect(0, bounds.size.h-barThickness, barWidth, barThickness); // x, y, w, h
+    int barWidth = batt * SCREEN_WIDTH / 100; //can't use floating point numbers!
+    GRect theBar = GRect(0, SCREEN_HEIGHT-BAR_THICKNESS, barWidth, BAR_THICKNESS); // x, y, w, h
     graphics_fill_rect(ctx, theBar, 0, GCornerNone);
 }
 
@@ -70,7 +69,6 @@ static void date_animation_stopped_handler(Animation *animation, bool finished, 
 static void animate_date() {
     if (dateIsAnimating) return;
     dateIsAnimating = 1;
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "Running animation");
     
     PropertyAnimation *in = property_animation_create_layer_frame(
         (Layer*) s_date_layer, &date_frame_offscreen, &date_frame_onscreen);
@@ -116,7 +114,6 @@ static void draw_date(struct tm *tick_time) {
  * Calls animate_date().
  */
 static void tap_handler(AccelAxisType axis, int32_t direction) {
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "In tap_hander()");
     animate_date();
 }
 
@@ -177,7 +174,7 @@ static void main_window_load(Window *window) {
     
     
     // BATTERY PERCENT
-    s_battery_percent_layer = text_layer_create(GRect(0, 0, 144, 154));
+    s_battery_percent_layer = text_layer_create(GRect(0, SCREEN_HEIGHT-BAR_THICKNESS-20, 50, 20)); // x, y, w, h
     text_layer_set_text(s_battery_percent_layer, "000%");
     text_layer_set_font(s_battery_percent_layer, date_font);
     text_layer_set_text_alignment(s_battery_percent_layer, GTextAlignmentLeft);
@@ -214,7 +211,6 @@ static void init() {
     tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
     accel_tap_service_subscribe(tap_handler);
     battery_state_service_subscribe(battery_handler);
-     APP_LOG(APP_LOG_LEVEL_DEBUG, "Thing");
     
     // Ensure battery level is displayed from the start
     battery_handler(battery_state_service_peek());

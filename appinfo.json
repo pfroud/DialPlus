@@ -10,11 +10,11 @@
     "resources": {
         "media": [
             {
-                "file": "images/menu_image",
+                "file": "images/menu_image.png",
                 "menuIcon": true,
                 "name": "menu_image",
                 "targetPlatforms": null,
-                "type": "bitmap"
+                "type": "png"
             },
             {
                 "file": "images/background.png",

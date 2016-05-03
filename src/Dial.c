@@ -22,7 +22,7 @@ static GRect batt_bar_frame_onscreen, batt_bar_frame_offscreen;
 static GRect batt_percent_frame_onscreen, batt_percent_frame_offscreen;
 
 bool isAnimating = 0;
-static int last_mins_since_midnight = 0;
+static int last_mins_since_midnight;
 
 static const char *days_of_week[] = {"SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"};
 static const int NEEDLE_X_START = SCREEN_WIDTH / 2 - 1;
@@ -123,6 +123,7 @@ static void tap_handler(AccelAxisType axis, int32_t direction) {
 static void tick_handler_minute(struct tm *tick_time, TimeUnits units_changed) {
     const int mins_since_midnight = tick_time->tm_hour * 60 + tick_time->tm_min;
     const int background_x_offset = mins_since_midnight * BACKGROUND_WIDTH * 2 / MINUTES_PER_DAY;
+    last_mins_since_midnight = mins_since_midnight;
     
     for (int i = 0; i < 4; i++) {
         GRect frame = GRect((-background_x_offset) + (SCREEN_WIDTH / 2) + BACKGROUND_WIDTH * (i - 1), 0, BACKGROUND_WIDTH, SCREEN_HEIGHT);
@@ -149,13 +150,25 @@ static void needle_layer_update_proc(Layer *layer, GContext *ctx) {
 
 
 static void draw_event_mark(GContext *ctx, int event_time){
+    
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "event_time is %d", event_time);
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "current time is %d", last_mins_since_midnight);
+    
+    int difference = event_time - last_mins_since_midnight;
+    
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "difference is %d", difference);
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "------------------------");
+
+    // http://stackoverflow.com/a/9772491
+    //int abs = difference * ((difference>0) - (difference<0));
+    
     GRect bounds = layer_get_bounds(s_event_mark_layer);
     graphics_context_set_fill_color(ctx, GColorCyan);
-    graphics_fill_rect(ctx, GRect(NEEDLE_X_START + 4, 0, 2, bounds.size.h), 0, GCornerNone);
+    graphics_fill_rect(ctx, GRect(NEEDLE_X_START + difference*2, 0, 2, bounds.size.h), 0, GCornerNone);
 }
 
 static void event_mark_update_proc(Layer *layer, GContext *ctx) {
-    draw_event_mark(ctx, 60*12 + 30);
+    draw_event_mark(ctx, 60*(12+3) + 30);
 }
 
 static void main_window_load(Window *window) {

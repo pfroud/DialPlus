@@ -15,7 +15,7 @@ static Window *s_main_window;
 static BitmapLayer *s_background_layers[4];
 static GBitmap *s_background_bitmap;
 static TextLayer *s_date_layer, *s_batt_percent_layer;
-static Layer *s_batt_bar_layer, *s_event_mark_layer, *needle_layer;
+static Layer *needle_layer, *s_batt_bar_layer, *s_event_mark_layer;
 
 static GRect date_frame_onscreen, date_frame_offscreen;
 static GRect batt_bar_frame_onscreen, batt_bar_frame_offscreen;
@@ -23,29 +23,10 @@ static GRect batt_percent_frame_onscreen, batt_percent_frame_offscreen;
 
 bool isAnimating = 0;
 
-static const char *days_of_week[] = {"SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT",};
-
-static int s_batt_level;
-
-static int last_num_mins_since_midnight;
+static const char *days_of_week[] = {"SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"};
 static const int NEEDLE_X_START = SCREEN_WIDTH / 2 - 1;
 
-
-static void draw_event_mark(GContext *ctx, int event_time){
-    int diff = last_num_mins_since_midnight - event_time;
-    int abs = diff * ((diff>0) - (diff<0)); // http://stackoverflow.com/a/9772491
-    if (abs < 15) return;
-    
-    GRect bounds = layer_get_bounds(s_event_mark_layer);
-    graphics_context_set_text_color(ctx, GColorCyan);
-    graphics_fill_rect(ctx, GRect(NEEDLE_X_START + diff, 0, 2, bounds.size.h), 0, GCornerNone);
-  
-}
-
-static void event_mark_update_proc(Layer *layer, GContext *ctx) {
-    draw_event_mark(ctx, 60*11 + 40);
-}
-
+static int s_batt_level;
 
 static void batt_handler(BatteryChargeState state) {
     s_batt_level = state.charge_percent;
@@ -69,6 +50,7 @@ static void batt_bar_update_proc(Layer *layer, GContext *ctx) {
     GRect theBar = GRect(0, 0, barWidth, BAR_THICKNESS); // x, y, w, h
     graphics_fill_rect(ctx, theBar, 0, GCornerNone);
 }
+
 
 static void date_animation_stopped_handler(Animation *animation, bool finished, void *context) {
     isAnimating = 0;
@@ -166,7 +148,6 @@ static void tap_handler(AccelAxisType axis, int32_t direction) {
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
     draw_clock(tick_time);
     draw_date(tick_time);
-    layer_mark_dirty(s_event_mark_layer);
 }
 
 
@@ -177,9 +158,20 @@ static void needle_layer_update_proc(Layer *layer, GContext *ctx) {
 }
 
 
+static void draw_event_mark(GContext *ctx, int event_time){
+    GRect bounds = layer_get_bounds(s_event_mark_layer);
+    graphics_context_set_fill_color(ctx, GColorCyan);
+    graphics_fill_rect(ctx, GRect(NEEDLE_X_START + 4, 0, 2, bounds.size.h), 0, GCornerNone);
+}
+
+static void event_mark_update_proc(Layer *layer, GContext *ctx) {
+    draw_event_mark(ctx, 60*12 + 30);
+}
+
 static void main_window_load(Window *window) {
     Layer *window_layer = window_get_root_layer(window);
     GRect bounds = layer_get_bounds(window_layer);
+    
     
     date_frame_onscreen = GRect(SCREEN_WIDTH / 2 + 2, PBL_IF_ROUND_ELSE(30, 20), PBL_IF_ROUND_ELSE(67, SCREEN_WIDTH / 2 - 2), 15);
     date_frame_offscreen = (GRect) { .origin = GPoint(date_frame_onscreen.origin.x, -50), .size = date_frame_onscreen.size };
@@ -198,15 +190,17 @@ static void main_window_load(Window *window) {
         layer_add_child(window_layer, (Layer*) s_background_layers[i]);
     }
     
-    // EVENT MARKER
-    s_event_mark_layer = layer_create(GRect(0, 85, SCREEN_WIDTH, 21));
+    // EVENT MARK
+    s_event_mark_layer = layer_create(GRect(0, 84, SCREEN_WIDTH, 21));
     layer_set_update_proc(s_event_mark_layer, event_mark_update_proc);
     layer_add_child(window_layer, s_event_mark_layer);
+    
     
     // NEDLE
     needle_layer = layer_create(bounds);
     layer_set_update_proc(needle_layer, needle_layer_update_proc);
     layer_add_child(window_layer, needle_layer);
+    
     
     // DATE
     GFont date_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_MEDIUM_14));
@@ -217,10 +211,12 @@ static void main_window_load(Window *window) {
     text_layer_set_background_color(s_date_layer, GColorBlack);
     layer_add_child(window_layer, (Layer*) s_date_layer);
     
+    
     // BATTERY BAR
     s_batt_bar_layer = layer_create(batt_bar_frame_offscreen);
     layer_set_update_proc(s_batt_bar_layer, batt_bar_update_proc);
     layer_add_child(window_layer, s_batt_bar_layer);
+    
     
     // BATTERY PERCENT
     s_batt_percent_layer = text_layer_create(batt_percent_frame_offscreen);
@@ -230,8 +226,6 @@ static void main_window_load(Window *window) {
     text_layer_set_background_color(s_batt_percent_layer, GColorClear);
     text_layer_set_text_color(s_batt_percent_layer, GColorWhite);
     layer_add_child(window_layer, text_layer_get_layer(s_batt_percent_layer));
-    
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "finished main_window_load");
 
 }
 
@@ -242,45 +236,29 @@ static void main_window_unload(Window *window) {
     gbitmap_destroy(s_background_bitmap);
     layer_destroy(s_batt_bar_layer);
     layer_destroy(needle_layer);
-    layer_destroy(s_event_mark_layer);
-    text_layer_destroy(s_date_layer);
     text_layer_destroy(s_batt_percent_layer);
-    
-
+    text_layer_destroy(s_date_layer);
 }
 
 static void init() {
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "starting init");
     s_main_window = window_create();
-    if(s_main_window == NULL)  APP_LOG(APP_LOG_LEVEL_DEBUG, "broken");
-    //APP_LOG(APP_LOG_LEVEL_DEBUG, "A");
     window_set_background_color(s_main_window, GColorBlack);
-    //APP_LOG(APP_LOG_LEVEL_DEBUG, "B");
     window_set_window_handlers(s_main_window, (WindowHandlers) {
         .load = main_window_load,
         .unload = main_window_unload
     });
-    //APP_LOG(APP_LOG_LEVEL_DEBUG, "C");
     window_stack_push(s_main_window, true);
     
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "about to subscribe");
+    time_t current_time = time(NULL);
+    draw_clock(localtime(&current_time));
+    draw_date(localtime(&current_time));
     
-    // subscribe to events
     tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
     accel_tap_service_subscribe(tap_handler);
     battery_state_service_subscribe(batt_handler);
     
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "abotu to draw for first time");
-    
-    // first draw for first time
+    // Ensure batt level is displayed from the start
     batt_handler(battery_state_service_peek());
-    time_t current_time = time(NULL);
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "about to do tick_handler");
-    tick_handler(localtime(&current_time), 0);
-    //draw_clock(localtime(&current_time));
-    //draw_date(localtime(&current_time));
-    
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "finished init");
 
 }
 

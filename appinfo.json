@@ -1,7 +1,5 @@
 {
-    "appKeys": {
-        "dummy": 0
-    },
+    "appKeys": {},
     "capabilities": [
         ""
     ],
@@ -11,6 +9,13 @@
     "projectType": "native",
     "resources": {
         "media": [
+            {
+                "file": "images/menu_image",
+                "menuIcon": true,
+                "name": "menu_image",
+                "targetPlatforms": null,
+                "type": "bitmap"
+            },
             {
                 "file": "images/background.png",
                 "name": "BACKGROUND",
@@ -29,7 +34,7 @@
         "basalt"
     ],
     "uuid": "912e8d32-2f62-4092-b005-a40cfc9a6f15",
-    "versionLabel": "0.1",
+    "versionLabel": "0.5",
     "watchapp": {
         "watchface": true
     }

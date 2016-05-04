@@ -15,38 +15,6 @@ static int last_mins_since_midnight;
 
 static const int NEEDLE_X_START = SCREEN_WIDTH / 2 - 1;
 
-//// in progress things ////
-
-GPathInfo TRI_PATH_INFO; //set in init()
-GPath *s_tri_path;
-static void draw_event_mark(GContext *ctx, int event_time_start, int event_time_end){
-    
-    //int abs = difference * ((difference>0) - (difference<0)); // http://stackoverflow.com/a/9772491
-    
-    int difference_now_start = event_time_start - last_mins_since_midnight;
-    int difference_now_end = event_time_end - last_mins_since_midnight;
-    
-    int x_start = NEEDLE_X_START + difference_now_start*2 - 1 - 2;
-    int x_end   = NEEDLE_X_START + difference_now_end*2 - 1 - 2;
-    
-    #define MARK_HEIGHT 10
-    #define MARK_THICKNESS 2
-    
-    //GRect bounds = layer_get_bounds(s_event_mark_layer);
-    graphics_context_set_fill_color(ctx, GColorCyan);
-    graphics_fill_rect(ctx, GRect(x_start, -MARK_HEIGHT-1, MARK_THICKNESS, MARK_HEIGHT), 0, GCornerNone);
-    graphics_fill_rect(ctx, GRect(x_end,   -MARK_HEIGHT-1, MARK_THICKNESS, MARK_HEIGHT), 0, GCornerNone);
-    graphics_fill_rect(ctx, GRect(x_start, -MARK_HEIGHT-1,  x_end-x_start, MARK_THICKNESS), 0, GCornerNone);
-    
-    #define TRI_W 10
-    #define TRI_H 10
-
-    gpath_move_to(s_tri_path, GPoint(30, -TRI_H));
-    gpath_draw_filled(ctx, s_tri_path);
- 
-}
-
-
 //// ANIMATION ////
 
 #define ANIM_DURATION_IN 400
@@ -58,7 +26,6 @@ static GRect batt_percent_frame_onscreen, batt_percent_frame_offscreen;
 static bool isAnimating = 0;
 
 static void animate_batt_bar(){
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "anim batt ber");
     PropertyAnimation *in = property_animation_create_layer_frame(
         (Layer*) s_batt_bar_layer, &batt_bar_frame_offscreen, &batt_bar_frame_onscreen);
     animation_set_duration((Animation*) in, ANIM_DURATION_IN);
@@ -74,7 +41,6 @@ static void animate_batt_bar(){
 }
 
 static void animate_batt_percent(){
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "anim batt percent");
     PropertyAnimation *in = property_animation_create_layer_frame(
         (Layer*) s_batt_percent_layer, &batt_percent_frame_offscreen, &batt_percent_frame_onscreen);
     animation_set_duration((Animation*) in, ANIM_DURATION_IN);
@@ -90,7 +56,6 @@ static void animate_batt_percent(){
 }
 
 static void animation_stopped_handler(Animation *animation, bool finished, void *context) {
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "anim done");
     isAnimating = 0;
 }
 
@@ -164,8 +129,35 @@ static void needle_layer_update_proc(Layer *layer, GContext *ctx) {
     graphics_fill_rect(ctx, needle_rect, 0, 0);
 }
 
+GPathInfo TRI_PATH_INFO; //set in init()
+GPath *s_tri_path;
+static const int event_time_start = 60*(1) + 30;
+static const int event_time_end = 60*(1) + 45;
 static void event_mark_update_proc(Layer *layer, GContext *ctx) {
-    draw_event_mark(ctx, 60*(12+4) + 10, 60*(12+4) + 30);
+    
+    //int abs = difference * ((difference>0) - (difference<0)); // http://stackoverflow.com/a/9772491
+    
+    int difference_now_start = event_time_start - last_mins_since_midnight;
+    int difference_now_end = event_time_end - last_mins_since_midnight;
+    
+    int x_start = NEEDLE_X_START + difference_now_start*2 - 1 - 2;
+    int x_end   = NEEDLE_X_START + difference_now_end*2 - 1 - 2;
+    
+    #define MARK_HEIGHT 10
+    #define MARK_THICKNESS 2
+    
+    //GRect bounds = layer_get_bounds(s_event_mark_layer);
+    graphics_context_set_fill_color(ctx, GColorCyan);
+    graphics_fill_rect(ctx, GRect(x_start, -MARK_HEIGHT-1, MARK_THICKNESS, MARK_HEIGHT), 0, GCornerNone);
+    graphics_fill_rect(ctx, GRect(x_end,   -MARK_HEIGHT-1, MARK_THICKNESS, MARK_HEIGHT), 0, GCornerNone);
+    graphics_fill_rect(ctx, GRect(x_start, -MARK_HEIGHT-1,  x_end-x_start, MARK_THICKNESS), 0, GCornerNone);
+    
+    #define TRI_W 10
+    #define TRI_H 10
+
+    gpath_move_to(s_tri_path, GPoint(30, -TRI_H));
+    gpath_draw_filled(ctx, s_tri_path);
+    
 }
 
 static void batt_bar_update_proc(Layer *layer, GContext *ctx) {

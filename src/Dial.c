@@ -4,11 +4,6 @@
 #define SCREEN_WIDTH (PBL_IF_ROUND_ELSE(180, 144))
 #define SCREEN_HEIGHT (PBL_IF_ROUND_ELSE(180, 168))
 
-
-
-#define BAR_THICKNESS (2)
-
-
 static Window *s_main_window;
 static BitmapLayer *s_background_layers[4];
 static GBitmap *s_background_bitmap;
@@ -171,6 +166,7 @@ static void event_mark_update_proc(Layer *layer, GContext *ctx) {
     draw_event_mark(ctx, 60*(12+4) + 10, 60*(12+4) + 30);
 }
 
+#define BAR_THICKNESS (2)
 static void batt_bar_update_proc(Layer *layer, GContext *ctx) {
     int batt = s_batt_level;
     GColor theColor = GColorRed;

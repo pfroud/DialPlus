@@ -173,13 +173,14 @@ static void draw_batt_bar(Layer *layer, GContext *ctx) {
     graphics_fill_rect(ctx, theBar, 0, GCornerNone);
 }
 
-#define TIME 100
-#define PX_PER_MINUTE 1
+#define PX_PER_MINUTE 2
 #define TICK_Y_START 86
 #define TICK_WIDTH 2
 #define TICK_HEIGHT_HOUR 21
 #define TICK_HEIGHT_HALFHOUR 11
 #define TICK_HEIGHT_10MINS 4
+
+#define TIME 50
 
 static void draw_bg_color(GContext *ctx){
     GRect bounds = layer_get_bounds(layer_bg_new);
@@ -187,35 +188,54 @@ static void draw_bg_color(GContext *ctx){
     graphics_fill_rect(ctx, bounds, 0, GCornerNone);
 }
 
-GRect currentRect;
-static void draw_tick(GContext *ctx, int time_current, int time_to_convert){
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "time_to_convert = %d", time_to_convert);
-    
-    int time_diff = time_to_convert - time_current;
-    int time_x_position = time_current + PX_PER_MINUTE*time_diff;
-    
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "time_diff = %d", time_diff);
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "time_x_position = %d", time_x_position);
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "-------------------------");
-    
-    currentRect = GRect(time_x_position, TICK_Y_START, TICK_WIDTH, 10);
-    graphics_fill_rect(ctx, currentRect, 0, GCornerNone);
-    
+GRect rectTick, rectLabel;
+
+
+static int time_to_x_pos(int current_time, int time_to_convert){
+    int time_diff = time_to_convert - current_time;
+    return NEEDLE_X_START + time_diff * PX_PER_MINUTE;
 }
 
+static void draw_tick(GContext *ctx, int time){
+    int x = time_to_x_pos(TIME, time);
+
+    rectTick = GRect(x, TICK_Y_START, TICK_WIDTH, TICK_HEIGHT_HOUR);
+    graphics_fill_rect(ctx, rectTick, 0, GCornerNone);
+    
+    char buffer[4];
+    snprintf(buffer, sizeof(buffer), "%d", time);
+    rectLabel = GRect(x-5, TICK_Y_START+TICK_HEIGHT_HOUR, 80, 30);
+    graphics_draw_text(ctx, buffer, fonts_get_system_font(FONT_KEY_GOTHIC_14), rectLabel, GTextOverflowModeWordWrap, GTextAlignmentLeft, NULL);
+
+}
+
+static int closest_multiple_of_ten(int n, bool up){
+    if(n%10 == 0) return n + (up ? 10 : -10);
+    
+    if(up){
+        return (n/10 + 1)*10;
+    } else{
+        return n/10*10;
+    }
+    return -1;
+}
 
 static void draw_bg_new(Layer *layer, GContext *ctx){
     draw_bg_color(ctx);
     graphics_context_set_fill_color(ctx, GColorWhite);
     
-    int time_at_left_edge  = TIME - SCREEN_WIDTH/2/PX_PER_MINUTE;
-    int time_at_right_edge = TIME + SCREEN_WIDTH/2/PX_PER_MINUTE;
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "time_at_left_edge is %d", time_at_left_edge);
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "time_at_right_edge is %d", time_at_right_edge);
- 
-    //GRect currentRect;
-    for(int t = time_at_left_edge; t <= time_at_right_edge; t += 10){
-        draw_tick(ctx, TIME, t);
+    if(TIME % 10 == 0) draw_tick(ctx, TIME);
+    
+    int first_tick_time_left = closest_multiple_of_ten(TIME, false);
+    int first_tick_time_right = closest_multiple_of_ten(TIME, true);
+    draw_tick(ctx, first_tick_time_left);
+    draw_tick(ctx, first_tick_time_right);
+    
+    for(int t = first_tick_time_left-10; t>=TIME-30; t-=10){
+        draw_tick(ctx, t);
+    }
+    for(int t = first_tick_time_right+10; t<=TIME+30; t+=10){
+        draw_tick(ctx, t);
     }
     
 }

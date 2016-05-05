@@ -9,7 +9,7 @@ static BitmapLayer *background_layers[4];
 static GBitmap *background_bitmap;
 
 static TextLayer *layer_date, *layer_batt_percent;
-static Layer *layer_needle, *layer_batt_bar, *layer_event_mark;
+static Layer *layer_needle, *layer_batt_bar, *layer_event_mark, *layer_bg_new;
 
 static int last_mins_since_midnight;
 
@@ -121,7 +121,7 @@ static void handler_tick(struct tm *tick_time, TimeUnits units_changed) {
 }
 
 
-//// UPDATE PROCS ////
+//// DRAWING ////
 
 static GRect needle_rect;
 static void draw_needle(Layer *layer, GContext *ctx) {
@@ -173,6 +173,55 @@ static void draw_batt_bar(Layer *layer, GContext *ctx) {
     graphics_fill_rect(ctx, theBar, 0, GCornerNone);
 }
 
+#define TIME 100
+#define PX_PER_MINUTE 1
+#define TICK_Y_START 86
+#define TICK_WIDTH 2
+#define TICK_HEIGHT_HOUR 21
+#define TICK_HEIGHT_HALFHOUR 11
+#define TICK_HEIGHT_10MINS 4
+
+static void draw_bg_color(GContext *ctx){
+    GRect bounds = layer_get_bounds(layer_bg_new);
+    graphics_context_set_fill_color(ctx, GColorDarkGray);
+    graphics_fill_rect(ctx, bounds, 0, GCornerNone);
+}
+
+GRect currentRect;
+static void draw_tick(GContext *ctx, int time_current, int time_to_convert){
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "time_to_convert = %d", time_to_convert);
+    
+    int time_diff = time_to_convert - time_current;
+    int time_x_position = time_current + PX_PER_MINUTE*time_diff;
+    
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "time_diff = %d", time_diff);
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "time_x_position = %d", time_x_position);
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "-------------------------");
+    
+    currentRect = GRect(time_x_position, TICK_Y_START, TICK_WIDTH, 10);
+    graphics_fill_rect(ctx, currentRect, 0, GCornerNone);
+    
+}
+
+
+static void draw_bg_new(Layer *layer, GContext *ctx){
+    draw_bg_color(ctx);
+    graphics_context_set_fill_color(ctx, GColorWhite);
+    
+    int time_at_left_edge  = TIME - SCREEN_WIDTH/2/PX_PER_MINUTE;
+    int time_at_right_edge = TIME + SCREEN_WIDTH/2/PX_PER_MINUTE;
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "time_at_left_edge is %d", time_at_left_edge);
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "time_at_right_edge is %d", time_at_right_edge);
+ 
+    //GRect currentRect;
+    for(int t = time_at_left_edge; t <= time_at_right_edge; t += 10){
+        draw_tick(ctx, TIME, t);
+    }
+    
+}
+
+
+
 
 //// CORE ////
 
@@ -181,24 +230,30 @@ static void main_window_load(Window *window) {
     GRect bounds = layer_get_bounds(window_layer);
     
     // BACKGROUND
+    /*
     background_bitmap = gbitmap_create_with_resource(RESOURCE_ID_BACKGROUND);
     for (unsigned i = 0; i < ARRAY_LENGTH(background_layers); i++) {
         background_layers[i] = bitmap_layer_create(bounds);
         bitmap_layer_set_bitmap(background_layers[i], background_bitmap);
         layer_add_child(window_layer, (Layer*) background_layers[i]);
     }
+    */
+    layer_bg_new = layer_create(bounds);
+    layer_set_update_proc(layer_bg_new, draw_bg_new);
+    layer_add_child(window_layer, layer_bg_new);
+    
+    
     
     // EVENT MARK
     layer_event_mark = layer_create(GRect(0, 84, SCREEN_WIDTH, 21));
     layer_set_update_proc(layer_event_mark, draw_event_mark);
     layer_set_clips(layer_event_mark, false);
-    layer_add_child(window_layer, layer_event_mark);
+    //layer_add_child(window_layer, layer_event_mark);
     
     
     // NEDLE
     layer_needle = layer_create(bounds);
     layer_set_update_proc(layer_needle, draw_needle);
-    layer_set_clips(layer_needle, true);
     layer_add_child(window_layer, layer_needle);
     
     
@@ -209,13 +264,13 @@ static void main_window_load(Window *window) {
     text_layer_set_text_color(layer_date, GColorWhite);
     text_layer_set_font(layer_date, date_font);
     text_layer_set_background_color(layer_date, GColorBlack);
-    layer_add_child(window_layer, (Layer*) layer_date);
+    //layer_add_child(window_layer, (Layer*) layer_date);
     
     
     // BATTERY BAR
     layer_batt_bar = layer_create(frame_batt_bar_offscreen);
     layer_set_update_proc(layer_batt_bar, draw_batt_bar);
-    layer_add_child(window_layer, layer_batt_bar);
+    //layer_add_child(window_layer, layer_batt_bar);
     
     
     // BATTERY PERCENT
@@ -225,7 +280,7 @@ static void main_window_load(Window *window) {
     text_layer_set_text_alignment(layer_batt_percent, GTextAlignmentLeft);
     text_layer_set_background_color(layer_batt_percent, GColorClear);
     text_layer_set_text_color(layer_batt_percent, GColorWhite);
-    layer_add_child(window_layer, text_layer_get_layer(layer_batt_percent));
+    //layer_add_child(window_layer, text_layer_get_layer(layer_batt_percent));
 
 }
 

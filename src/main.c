@@ -18,8 +18,6 @@ int last_mins_since_midnight;
 int s_batt_level;
 
 
-
-
 void main_window_load(Window *window) {
     Layer *window_layer = window_get_root_layer(window);
     GRect bounds = layer_get_bounds(window_layer);
@@ -34,7 +32,7 @@ void main_window_load(Window *window) {
     }
     */
     layer_bg_new = layer_create(bounds);
-    layer_set_update_proc(layer_bg_new, draw_bg_new);
+    layer_set_update_proc(layer_bg_new, draw_new_bg_layer);
     layer_add_child(window_layer, layer_bg_new);
       
     // EVENT MARK
@@ -107,16 +105,9 @@ void init() {
     time_t current_time = time(NULL);
     handler_tick(localtime(&current_time), MINUTE_UNIT|DAY_UNIT);
     
-    // init some shapes
-    init_drawing();
-    frame_date_onscreen = GRect(SCREEN_WIDTH / 2 + 2, PBL_IF_ROUND_ELSE(30, 20), PBL_IF_ROUND_ELSE(67, SCREEN_WIDTH / 2 - 2), 15);
-    frame_date_offscreen = (GRect) { .origin = GPoint(frame_date_onscreen.origin.x, -50), .size = frame_date_onscreen.size };
-    
-    frame_batt_bar_onscreen = GRect(0, SCREEN_HEIGHT-BAR_THICKNESS, SCREEN_WIDTH, BAR_THICKNESS);
-    frame_batt_bar_offscreen = (GRect) { .origin = GPoint(frame_batt_bar_onscreen.origin.x, SCREEN_HEIGHT+30), .size = frame_batt_bar_onscreen.size };
-    
-    frame_batt_percent_onscreen = GRect(3, SCREEN_HEIGHT-BAR_THICKNESS-20, 50, 20);
-    frame_batt_percent_offscreen = (GRect) { .origin = GPoint(frame_batt_percent_onscreen.origin.x, SCREEN_HEIGHT+30), .size = frame_batt_percent_onscreen.size };
+    // init shapes
+    init_drawing_shapes();
+    init_anim_frames();
     
 }
 

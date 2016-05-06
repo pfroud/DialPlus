@@ -2,17 +2,30 @@
 #include "main.h"
 #include "drawing.h"
 
+
+#define PX_PER_MINUTE 2
+#define TICK_Y_START 86
+#define TICK_WIDTH 2
+#define TICK_HEIGHT_HOUR 21
+#define TICK_HEIGHT_HALFHOUR 11
+#define TICK_HEIGHT_10MINS 4
+
+#define TRI_W 10
+#define TRI_H 10
+
+#define TIME 58
+
+struct tm time_now;
+
 //////// VARIABLES ////////
 
 static const int event_time_start = 60*(1) + 30;
 static const int event_time_end = 60*(1) + 45;
 static GRect needle_rect;
 static GRect rectTick, rectLabel;
-
-
 static GPath *s_tri_path;
-
 const int NEEDLE_X_START = SCREEN_WIDTH / 2 - 1;
+
 
 //////// PRIVATE ////////
 
@@ -22,22 +35,21 @@ static void draw_bg_color(GContext *ctx){
     graphics_fill_rect(ctx, bounds, 0, GCornerNone);
 }
 
-
+/*
 static int time_to_x_pos(int current_time, int time_to_convert){
     int time_diff = time_to_convert - current_time;
     return NEEDLE_X_START + time_diff * PX_PER_MINUTE;
 }
+*/
 
-/*
 static int time_to_x_pos_new(struct tm* current, struct tm* convertee){
     // Built-in difftime func is bad. https://developer.pebble.com/docs/c/Standard_C/Time/#difftime
     time_t diff_sec = mktime(convertee) - mktime(current);
     int diff_min = diff_sec / SECONDS_PER_MINUTE; 
     return NEEDLE_X_START + diff_min * PX_PER_MINUTE;
 }
-*/
 
-
+/*
 static int closest_multiple_of_ten(int n, bool up){
     if(n%10 == 0) return n + (up ? 10 : -10);
     
@@ -48,8 +60,8 @@ static int closest_multiple_of_ten(int n, bool up){
     }
     return -1;
 }
+*/
 
-/*
 static struct tm* closest_multiple_of_ten_new(struct tm* t_old, bool up){
     struct tm* t_new = t_old; //allegedly makes a copy of t_old
     int min_old = t_old->tm_min;
@@ -60,12 +72,33 @@ static struct tm* closest_multiple_of_ten_new(struct tm* t_old, bool up){
     }  
     return t_new;
 }
-*/
+
+static struct tm* next_time(struct tm* current_time, bool up){
+    struct tm* next_time = current_time; //allegedly makes a copy of current_time
+    
+    // TODO logic to check for wrap at 1 and 12
+    
+    next_time->tm_min += (up ? 10 : -10);
+    
+    if(next_time->tm_min > 59){
+        next_time->tm_hour++;
+        next_time->tm_min -= 60;
+    }
+    if(next_time->tm_min < 0){
+        next_time->tm_hour--;
+        next_time->tm_min += 60;
+    }
+    
+    return next_time;
+}
 
 
 //////// PUBLIC ////////
 
-void init_drawing() {
+void init_drawing_shapes() {
+    
+    time_now = (struct tm){.tm_year=116, .tm_mon=4, .tm_mday=5, .tm_hour=12+8, .tm_min=12, .tm_wday=4};
+    
     needle_rect = GRect(NEEDLE_X_START, 0, 2, SCREEN_HEIGHT * 0.6);
     GPathInfo TRI_PATH_INFO = {
         .num_points = 3,
@@ -117,6 +150,7 @@ void draw_batt_bar(Layer *layer, GContext *ctx) {
     graphics_fill_rect(ctx, theBar, 0, GCornerNone);
 }
 
+/*
 void draw_tick(GContext *ctx, int time){
     int x = time_to_x_pos(TIME, time);
 
@@ -128,36 +162,46 @@ void draw_tick(GContext *ctx, int time){
     rectLabel = GRect(x-5, TICK_Y_START+TICK_HEIGHT_HOUR, 80, 30);
     graphics_draw_text(ctx, buffer, fonts_get_system_font(FONT_KEY_GOTHIC_14), rectLabel, GTextOverflowModeWordWrap, GTextAlignmentLeft, NULL);
 }
+*/
 
-void draw_bg_new(Layer *layer, GContext *ctx){
+void draw_tick_new(GContext *ctx, struct tm* tick_time){
+    int x = time_to_x_pos_new(&time_now, tick_time);
+
+    rectTick = GRect(x, TICK_Y_START, TICK_WIDTH, TICK_HEIGHT_HOUR);
+    graphics_fill_rect(ctx, rectTick, 0, GCornerNone);
+    
+    char buffer[4];
+    snprintf(buffer, sizeof(buffer), "%d:%d", tick_time->tm_hour, tick_time->tm_min);
+    rectLabel = GRect(x-5, TICK_Y_START+TICK_HEIGHT_HOUR, 80, 30);
+    graphics_draw_text(ctx, buffer, fonts_get_system_font(FONT_KEY_GOTHIC_14), rectLabel, GTextOverflowModeWordWrap, GTextAlignmentLeft, NULL);
+}
+
+void draw_new_bg_layer(Layer *layer, GContext *ctx){
     draw_bg_color(ctx);
     graphics_context_set_fill_color(ctx, GColorWhite);
     
-    if(TIME % 10 == 0) draw_tick(ctx, TIME);
+    if(TIME % 10 == 0) draw_tick_new(ctx, &time_now);
     
-    int first_tick_time_left = closest_multiple_of_ten(TIME, false);
-    int first_tick_time_right = closest_multiple_of_ten(TIME, true);
-    draw_tick(ctx, first_tick_time_left);
-    draw_tick(ctx, first_tick_time_right);
+    struct tm* first_tick_time_left = closest_multiple_of_ten_new(&time_now, false);
+    struct tm* first_tick_time_right = closest_multiple_of_ten_new(&time_now, true);
+    draw_tick_new(ctx, first_tick_time_left);
+    draw_tick_new(ctx, first_tick_time_right);
     
+    int minute_max = time_now.tm_min + 30;
+    
+    for(struct tm* current_time = next_time(first_tick_time_left, true); current_time->tm_min <= minute_max; current_time = next_time(current_time, true)){
+        draw_tick_new(ctx, current_time);
+    }
+    
+    /*
     for(int t = first_tick_time_left-10; t>=TIME-30; t-=10){
-        draw_tick(ctx, t);
+        draw_tick_new(ctx, t);
     }
     for(int t = first_tick_time_right+10; t<=TIME+30; t+=10){
-        draw_tick(ctx, t);
+        draw_tick_new(ctx, t);
     }
+    */
     
 }
 
 
-
-
-
-/*
-static void time_test(){
-    struct tm time_thing = {.tm_year=116, .tm_mon=4, .tm_mday=5, .tm_hour=12+8, .tm_min=12, .tm_wday=4};
-    char buffer[64];
-    strftime(buffer, sizeof(buffer), "%A, %d %b %Y %l:%M %p", &time_thing); // http://www.foragoodstrftime.com/
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "%s", buffer);
-}
-*/

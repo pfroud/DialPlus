@@ -5,8 +5,7 @@
 #include "handlers.h"
 #include "animation.h"
 
-
-//////// HANDLERS ////////
+const char *days_of_week[] = {"SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"};
 
 void handler_tap(AccelAxisType axis, int32_t direction) {
     APP_LOG(APP_LOG_LEVEL_DEBUG, "tap handler");
@@ -33,7 +32,6 @@ void handler_tap(AccelAxisType axis, int32_t direction) {
     animation_schedule((Animation*) out);
 }
 
-
 void handler_batt(BatteryChargeState state) {
     s_batt_level = state.charge_percent;
     
@@ -45,7 +43,6 @@ void handler_batt(BatteryChargeState state) {
     layer_mark_dirty(text_layer_get_layer(layer_batt_percent));
 }
 
-const char *days_of_week[] = {"SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"};
 void update_day(struct tm *tick_time) {
     static char buffer[7]; //needs static
     snprintf(buffer, sizeof(buffer), "%s %d", days_of_week[tick_time->tm_wday], tick_time->tm_mday);

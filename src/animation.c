@@ -5,11 +5,21 @@
 #include "handlers.h"
 #include "animation.h"
 
-
 GRect frame_date_onscreen, frame_date_offscreen;
 GRect frame_batt_bar_onscreen, frame_batt_bar_offscreen;
 GRect frame_batt_percent_onscreen, frame_batt_percent_offscreen;
 bool isAnimating = 0;
+
+void init_anim_frames(){
+    frame_date_onscreen = GRect(SCREEN_WIDTH / 2 + 2, PBL_IF_ROUND_ELSE(30, 20), PBL_IF_ROUND_ELSE(67, SCREEN_WIDTH / 2 - 2), 15);
+    frame_date_offscreen = (GRect) { .origin = GPoint(frame_date_onscreen.origin.x, -50), .size = frame_date_onscreen.size };
+    
+    frame_batt_bar_onscreen = GRect(0, SCREEN_HEIGHT-BAR_THICKNESS, SCREEN_WIDTH, BAR_THICKNESS);
+    frame_batt_bar_offscreen = (GRect) { .origin = GPoint(frame_batt_bar_onscreen.origin.x, SCREEN_HEIGHT+30), .size = frame_batt_bar_onscreen.size };
+    
+    frame_batt_percent_onscreen = GRect(3, SCREEN_HEIGHT-BAR_THICKNESS-20, 50, 20);
+    frame_batt_percent_offscreen = (GRect) { .origin = GPoint(frame_batt_percent_onscreen.origin.x, SCREEN_HEIGHT+30), .size = frame_batt_percent_onscreen.size };
+}
 
 void animate_batt_bar(){
     PropertyAnimation *in = property_animation_create_layer_frame(

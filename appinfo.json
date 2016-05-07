@@ -17,11 +17,6 @@
                 "type": "png"
             },
             {
-                "file": "images/background.png",
-                "name": "BACKGROUND",
-                "type": "png"
-            },
-            {
                 "file": "fonts/Medium.ttf",
                 "name": "MEDIUM_14",
                 "type": "font"

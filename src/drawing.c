@@ -10,11 +10,6 @@
 #define TICK_HEIGHT_HALFHOUR 11
 #define TICK_HEIGHT_10MIN 4
 
-#define TRI_W 10
-#define TRI_H 10
-
-#define TIME 58
-
 struct tm time_now;
 
 //////// VARIABLES ////////
@@ -76,18 +71,8 @@ static struct tm get_next_time(struct tm current_time, bool up){
 //////// PUBLIC ////////
 
 void init_drawing_shapes() {
-    
     time_now = (struct tm){.tm_year=116, .tm_mon=4, .tm_mday=5, .tm_hour=3, .tm_min=15, .tm_wday=4};
-    
     needle_rect = GRect(NEEDLE_X_START, 0, 2, SCREEN_HEIGHT * 0.6);
-    GPathInfo TRI_PATH_INFO = {
-        .num_points = 3,
-        //                      left      right          bottom
-        .points = (GPoint []) {{0, 0}, {TRI_W, 0}, {TRI_W/2, TRI_H}} //triangle size constants defined in draw_event_mark()
-    };
-    s_tri_path = gpath_create(&TRI_PATH_INFO);
-
-    
 }
 
 void draw_needle(Layer *layer, GContext *ctx) {
@@ -109,12 +94,27 @@ void draw_event_mark(Layer *layer, GContext *ctx) {
     #define MARK_THICKNESS 2
     
     //GRect bounds = layer_get_bounds(layer_event_mark);
-    graphics_context_set_fill_color(ctx, GColorCyan);
+    /*
+    graphics_context_set_fill_color(ctx, GColorCyan); // https://developer.pebble.com/guides/tools-and-resources/color-picker/
     graphics_fill_rect(ctx, GRect(x_start, -MARK_HEIGHT-1, MARK_THICKNESS, MARK_HEIGHT), 0, GCornerNone);
     graphics_fill_rect(ctx, GRect(x_end,   -MARK_HEIGHT-1, MARK_THICKNESS, MARK_HEIGHT), 0, GCornerNone);
     graphics_fill_rect(ctx, GRect(x_start, -MARK_HEIGHT-1,  x_end-x_start, MARK_THICKNESS), 0, GCornerNone);
+    */
+    
+    graphics_context_set_fill_color(ctx, GColorCadetBlue);
+    graphics_fill_rect(ctx, GRect(x_start, 0, x_end-x_start + TICK_WIDTH, TICK_HEIGHT_HOUR), 0, GCornerNone);
+    
+    #define TRI_W 10
+    #define TRI_H 10
+    GPathInfo TRI_PATH_INFO = {
+        .num_points = 3,
+        //                      left      right          bottom
+        .points = (GPoint []) {{0, 0}, {TRI_W, 0}, {TRI_W/2, TRI_H}}
+    };
+    s_tri_path = gpath_create(&TRI_PATH_INFO);
     
     gpath_move_to(s_tri_path, GPoint(30, -TRI_H));
+    graphics_context_set_fill_color(ctx, GColorCyan);
     gpath_draw_filled(ctx, s_tri_path);
     
 }
@@ -158,7 +158,7 @@ void draw_tick(GContext *ctx, struct tm* tick_location){
     
 }
 
-void draw_new_bg_layer(Layer *layer, GContext *ctx){
+void draw_time_layer(Layer *layer, GContext *ctx){
     //draw_bg_color(ctx);
     graphics_context_set_fill_color(ctx, GColorWhite);
     

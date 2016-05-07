@@ -7,11 +7,9 @@
 
 
 Window *main_window;
-BitmapLayer *background_layers[4];
-GBitmap *background_bitmap;
 
 TextLayer *layer_date, *layer_batt_percent;
-Layer *layer_needle, *layer_batt_bar, *layer_event_mark, *layer_bg_new;
+Layer *layer_needle, *layer_batt_bar, *layer_event_mark, *layer_time;
 
 int last_mins_since_midnight;
 
@@ -22,26 +20,18 @@ void main_window_load(Window *window) {
     Layer *window_layer = window_get_root_layer(window);
     GRect bounds = layer_get_bounds(window_layer);
     
-    // BACKGROUND
-    /*
-    background_bitmap = gbitmap_create_with_resource(RESOURCE_ID_BACKGROUND);
-    for (unsigned i = 0; i < ARRAY_LENGTH(background_layers); i++) {
-        background_layers[i] = bitmap_layer_create(bounds);
-        bitmap_layer_set_bitmap(background_layers[i], background_bitmap);
-        layer_add_child(window_layer, (Layer*) background_layers[i]);
-    }
-    */
-    layer_bg_new = layer_create(bounds);
-    layer_set_update_proc(layer_bg_new, draw_new_bg_layer);
-    layer_add_child(window_layer, layer_bg_new);
-      
     // EVENT MARK
     layer_event_mark = layer_create(GRect(0, 84, SCREEN_WIDTH, 21));
     layer_set_update_proc(layer_event_mark, draw_event_mark);
     layer_set_clips(layer_event_mark, false);
     layer_add_child(window_layer, layer_event_mark);
     
-    
+    // TIME
+    layer_time = layer_create(bounds);
+    layer_set_update_proc(layer_time, draw_time_layer);
+    layer_add_child(window_layer, layer_time);
+      
+
     // NEDLE
     layer_needle = layer_create(bounds);
     layer_set_update_proc(layer_needle, draw_needle);
@@ -76,10 +66,6 @@ void main_window_load(Window *window) {
 }
 
 void main_window_unload(Window *window) {
-    for (unsigned i = 0; i < ARRAY_LENGTH(background_layers); i++) {
-        bitmap_layer_destroy(background_layers[i]);
-    }
-    gbitmap_destroy(background_bitmap);
     layer_destroy(layer_batt_bar);
     layer_destroy(layer_needle);
     text_layer_destroy(layer_batt_percent);

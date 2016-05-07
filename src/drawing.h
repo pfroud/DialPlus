@@ -17,4 +17,4 @@ extern void draw_needle(Layer *layer, GContext *ctx);
 extern void draw_event_mark(Layer *layer, GContext *ctx);
 extern void draw_batt_bar(Layer *layer, GContext *ctx);
 extern void draw_tick(GContext *ctx, struct tm* tick_time);
-extern void draw_new_bg_layer(Layer *layer, GContext *ctx);
+extern void draw_time_layer(Layer *layer, GContext *ctx);

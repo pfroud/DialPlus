@@ -50,14 +50,7 @@ void update_day(struct tm *tick_time) {
 }
 
 void handler_tick(struct tm *tick_time, TimeUnits units_changed) {
-    const int mins_since_midnight = tick_time->tm_hour * 60 + tick_time->tm_min;
-    const int background_x_offset = mins_since_midnight * BACKGROUND_WIDTH * 2 / MINUTES_PER_DAY;
-    last_mins_since_midnight = mins_since_midnight;
-    
-    for (int i = 0; i < 4; i++) {
-        GRect frame = GRect((-background_x_offset) + (SCREEN_WIDTH / 2) + BACKGROUND_WIDTH * (i - 1), 0, BACKGROUND_WIDTH, SCREEN_HEIGHT);
-        layer_set_frame(bitmap_layer_get_layer(background_layers[i]), frame);
-    }
+    //time_now = &tick_time;
     
     // units_changed is a bit mask. Might need to subscribe to MINUTE_UNIT|DAY_UNIT
     if (units_changed & DAY_UNIT) update_day(tick_time);

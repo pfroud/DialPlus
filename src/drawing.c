@@ -8,7 +8,7 @@
 #define TICK_WIDTH 2
 #define TICK_HEIGHT_HOUR 21
 #define TICK_HEIGHT_HALFHOUR 11
-#define TICK_HEIGHT_10MINS 4
+#define TICK_HEIGHT_10MIN 4
 
 #define TRI_W 10
 #define TRI_H 10
@@ -25,6 +25,8 @@ static GRect needle_rect;
 static GRect rectTick, rectLabel;
 static GPath *s_tri_path;
 const int NEEDLE_X_START = SCREEN_WIDTH / 2 - 1;
+
+GFont label_font;
 
 
 //////// PRIVATE ////////
@@ -137,17 +139,31 @@ void draw_tick_new(GContext *ctx, struct tm* tick_location){
     APP_LOG(APP_LOG_LEVEL_DEBUG, "drawing tick at %d:%d", tick_location->tm_hour, tick_location->tm_min);
     int x = time_to_x_pos_new(&time_now, tick_location);
 
-    rectTick = GRect(x, TICK_Y_START, TICK_WIDTH, TICK_HEIGHT_HOUR);
+    int height = -10;
+    int min = tick_location->tm_min;
+    if(min == 0)          height = TICK_HEIGHT_HOUR;
+    else if (min == 30)   height = TICK_HEIGHT_HALFHOUR;
+    else if (min%10 == 0) height = TICK_HEIGHT_10MIN;
+    
+    
+    rectTick = GRect(x, TICK_Y_START, TICK_WIDTH, height);
     graphics_fill_rect(ctx, rectTick, 0, GCornerNone);
     
-    char buffer[6];
-    snprintf(buffer, sizeof(buffer), "%d:\n%02d", tick_location->tm_hour, tick_location->tm_min);
     rectLabel = GRect(x-5, TICK_Y_START+TICK_HEIGHT_HOUR, 40, 40);
-    graphics_draw_text(ctx, buffer, fonts_get_system_font(FONT_KEY_GOTHIC_14), rectLabel, GTextOverflowModeWordWrap, GTextAlignmentLeft, NULL);
+    
+    char buffer[6];
+    if(min == 0){
+        snprintf(buffer, sizeof(buffer), "%d", tick_location->tm_hour);
+        label_font = fonts_get_system_font(FONT_KEY_GOTHIC_28);
+    } else {    
+        snprintf(buffer, sizeof(buffer), "%d:\n%02d", tick_location->tm_hour, tick_location->tm_min);
+        label_font = fonts_get_system_font(FONT_KEY_GOTHIC_14);
+    }
+    graphics_draw_text(ctx, buffer, label_font, rectLabel, GTextOverflowModeWordWrap, GTextAlignmentLeft, NULL);
 }
 
 void draw_new_bg_layer(Layer *layer, GContext *ctx){
-    draw_bg_color(ctx);
+    //draw_bg_color(ctx);
     graphics_context_set_fill_color(ctx, GColorWhite);
       
     struct tm left  = closest_multiple_of_ten_new(&time_now, false);

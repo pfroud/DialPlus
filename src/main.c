@@ -39,7 +39,7 @@ void main_window_load(Window *window) {
     layer_event_mark = layer_create(GRect(0, 84, SCREEN_WIDTH, 21));
     layer_set_update_proc(layer_event_mark, draw_event_mark);
     layer_set_clips(layer_event_mark, false);
-    //layer_add_child(window_layer, layer_event_mark);
+    layer_add_child(window_layer, layer_event_mark);
     
     
     // NEDLE

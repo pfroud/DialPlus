@@ -19,8 +19,6 @@ struct tm time_now;
 
 //////// VARIABLES ////////
 
-static const int event_time_start = 60*(1) + 30;
-static const int event_time_end = 60*(1) + 45;
 static GRect needle_rect;
 static GRect rectTick, rectLabel;
 static GPath *s_tri_path;
@@ -31,20 +29,26 @@ GFont label_font;
 
 //////// PRIVATE ////////
 
-static void draw_bg_color(GContext *ctx){
-    GRect bounds = layer_get_bounds(layer_bg_new);
-    graphics_context_set_fill_color(ctx, GColorDarkGray);
-    graphics_fill_rect(ctx, bounds, 0, GCornerNone);
-}
-
-static int time_to_x_pos_new(struct tm* current, struct tm* convertee){
+static int time_to_x_pos(struct tm* current, struct tm* convertee){
     // Built-in difftime func is bad. https://developer.pebble.com/docs/c/Standard_C/Time/#difftime
     time_t diff_sec = mktime(convertee) - mktime(current);
     int diff_min = diff_sec / SECONDS_PER_MINUTE; 
     return NEEDLE_X_START + diff_min * PX_PER_MINUTE;
 }
 
-static struct tm closest_multiple_of_ten_new(struct tm* t_old, bool up){
+static struct tm wrap_time(struct tm input){
+    if(input.tm_min > 59){
+        input.tm_hour++;
+        input.tm_min -= 60;
+    }
+    if(input.tm_min < 0){
+        input.tm_hour--;
+        input.tm_min += 60;
+    }
+    return input;
+}
+
+static struct tm closest_multiple_of_ten(struct tm* t_old, bool up){
     struct tm t_new = *t_old; //makes a copy of t_old
     
     int min_old = t_old->tm_min;
@@ -63,19 +67,10 @@ static struct tm get_next_time(struct tm current_time, bool up){
     // TODO wrap at 1 and 12
     
     next_time.tm_min += (up ? 10 : -10);
-    /*
-    if(next_time.tm_min > 59){
-        next_time.tm_hour++;
-        next_time.tm_min -= 60;
-    }
-    if(next_time.tm_min < 0){
-        next_time.tm_hour--;
-        next_time.tm_min += 60;
-    }
-    */
     
-    return next_time;
+    return wrap_time(next_time);
 }
+
 
 
 //////// PUBLIC ////////
@@ -91,6 +86,7 @@ void init_drawing_shapes() {
         .points = (GPoint []) {{0, 0}, {TRI_W, 0}, {TRI_W/2, TRI_H}} //triangle size constants defined in draw_event_mark()
     };
     s_tri_path = gpath_create(&TRI_PATH_INFO);
+
     
 }
 
@@ -103,11 +99,11 @@ void draw_event_mark(Layer *layer, GContext *ctx) {
     
     //int abs = difference * ((difference>0) - (difference<0)); // http://stackoverflow.com/a/9772491
     
-    int difference_now_start = event_time_start - last_mins_since_midnight;
-    int difference_now_end = event_time_end - last_mins_since_midnight;
+    struct tm event_start = (struct tm){.tm_year=116, .tm_mon=4, .tm_mday=5, .tm_hour=3, .tm_min=25, .tm_wday=4};
+    struct tm event_end   = (struct tm){.tm_year=116, .tm_mon=4, .tm_mday=5, .tm_hour=3, .tm_min=40, .tm_wday=4};
     
-    int x_start = NEEDLE_X_START + difference_now_start*2 - 1 - 2;
-    int x_end   = NEEDLE_X_START + difference_now_end*2 - 1 - 2;
+    int x_start = time_to_x_pos(&time_now, &event_start);
+    int x_end   = time_to_x_pos(&time_now, &event_end);
     
     #define MARK_HEIGHT 10
     #define MARK_THICKNESS 2
@@ -135,9 +131,8 @@ void draw_batt_bar(Layer *layer, GContext *ctx) {
     graphics_fill_rect(ctx, theBar, 0, GCornerNone);
 }
 
-void draw_tick_new(GContext *ctx, struct tm* tick_location){
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "drawing tick at %d:%d", tick_location->tm_hour, tick_location->tm_min);
-    int x = time_to_x_pos_new(&time_now, tick_location);
+void draw_tick(GContext *ctx, struct tm* tick_location){
+    int x = time_to_x_pos(&time_now, tick_location);
 
     int height = -10;
     int min = tick_location->tm_min;
@@ -149,34 +144,37 @@ void draw_tick_new(GContext *ctx, struct tm* tick_location){
     rectTick = GRect(x, TICK_Y_START, TICK_WIDTH, height);
     graphics_fill_rect(ctx, rectTick, 0, GCornerNone);
     
-    rectLabel = GRect(x-5, TICK_Y_START+TICK_HEIGHT_HOUR, 40, 40);
+    rectLabel = GRect(x-5, TICK_Y_START+TICK_HEIGHT_HOUR+5, 40, 40);
     
-    char buffer[6];
+    char buffer[7];
     if(min == 0){
         snprintf(buffer, sizeof(buffer), "%d", tick_location->tm_hour);
-        label_font = fonts_get_system_font(FONT_KEY_GOTHIC_28);
+        label_font = fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD); // https://developer.pebble.com/guides/app-resources/system-fonts/
     } else {    
-        snprintf(buffer, sizeof(buffer), "%d:\n%02d", tick_location->tm_hour, tick_location->tm_min);
-        label_font = fonts_get_system_font(FONT_KEY_GOTHIC_14);
+        //snprintf(buffer, sizeof(buffer), "%d:\n%02d", tick_location->tm_hour, tick_location->tm_min);
+        //label_font = fonts_get_system_font(FONT_KEY_GOTHIC_14);
     }
     graphics_draw_text(ctx, buffer, label_font, rectLabel, GTextOverflowModeWordWrap, GTextAlignmentLeft, NULL);
+    
 }
 
 void draw_new_bg_layer(Layer *layer, GContext *ctx){
     //draw_bg_color(ctx);
     graphics_context_set_fill_color(ctx, GColorWhite);
-      
-    struct tm left  = closest_multiple_of_ten_new(&time_now, false);
-    struct tm right = closest_multiple_of_ten_new(&time_now, true);
-    draw_tick_new(ctx, &left);
-    draw_tick_new(ctx, &right);
+    
+    if(time_now.tm_min == 0) draw_tick(ctx, &time_now);
+    
+    struct tm left  = closest_multiple_of_ten(&time_now, false);
+    struct tm right = closest_multiple_of_ten(&time_now, true);
+    draw_tick(ctx, &left);
+    draw_tick(ctx, &right);
     
     time_t ts_now = mktime(&time_now);
     time_t ts_max = ts_now + SECONDS_PER_MINUTE * 30;
     time_t ts_min = ts_now - SECONDS_PER_MINUTE * 30;
     
-    for(struct tm active = get_next_time(left, false); mktime(&active) >= ts_min; active = get_next_time(active, false)) draw_tick_new(ctx, &active);
-    for(struct tm active = get_next_time(right, true); mktime(&active) <= ts_max; active = get_next_time(active, true)) draw_tick_new(ctx, &active);
+    for(struct tm active = get_next_time(left, false); mktime(&active) >= ts_min; active = get_next_time(active, false)) draw_tick(ctx, &active);
+    for(struct tm active = get_next_time(right, true); mktime(&active) <= ts_max; active = get_next_time(active, true)) draw_tick(ctx, &active);
     
    
     

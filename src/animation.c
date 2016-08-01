@@ -23,7 +23,7 @@ void init_anim_frames(){
 
 void animate_batt_bar(){
     
-    // all of these PropertyAnimations should only by allocated once!!
+    // these must be reallocated every time
     PropertyAnimation *in = property_animation_create_layer_frame(
         (Layer*) layer_batt_bar, &frame_batt_bar_offscreen, &frame_batt_bar_onscreen);
     animation_set_duration((Animation*) in, ANIM_DURATION_IN);
@@ -49,6 +49,24 @@ void animate_batt_percent(){
         (Layer*) layer_batt_percent, &frame_batt_percent_onscreen, &frame_batt_percent_offscreen);
     animation_set_duration((Animation*) out, ANIM_DURATION_OUT);
     animation_set_delay((Animation*) out, ANIM_DURATION_VISIBILITY);
+    animation_set_curve((Animation*) out, AnimationCurveEaseIn);
+    animation_schedule((Animation*) out);
+}
+
+void animate_date(){
+    PropertyAnimation *in = property_animation_create_layer_frame(
+        (Layer*) layer_date, &frame_date_offscreen, &frame_date_onscreen);
+    animation_set_duration((Animation*) in, ANIM_DURATION_IN);
+    animation_set_curve((Animation*) in, AnimationCurveEaseInOut);
+    animation_schedule((Animation*) in);
+    
+    PropertyAnimation *out = property_animation_create_layer_frame(
+        (Layer*) layer_date, &frame_date_onscreen, &frame_date_offscreen);
+    animation_set_duration((Animation*) out, ANIM_DURATION_OUT);
+    animation_set_delay((Animation*) out, ANIM_DURATION_VISIBILITY);
+    animation_set_handlers((Animation*) out, (AnimationHandlers) {
+        .stopped = animation_stopped_handler
+    }, NULL);
     animation_set_curve((Animation*) out, AnimationCurveEaseIn);
     animation_schedule((Animation*) out);
 }

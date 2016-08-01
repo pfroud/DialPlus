@@ -7,5 +7,6 @@ extern bool isAnimating;
 
 extern void animate_batt_bar();
 extern void animate_batt_percent();
+extern void animate_date();
 extern void animation_stopped_handler(Animation *animation, bool finished, void *context);
 extern void init_anim_frames();

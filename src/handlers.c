@@ -15,6 +15,8 @@ void handler_tap(AccelAxisType axis, int32_t direction) {
     animate_batt_bar();
     animate_batt_percent();
     
+    // everything below here should go in animation.c
+    
     PropertyAnimation *in = property_animation_create_layer_frame(
         (Layer*) layer_date, &frame_date_offscreen, &frame_date_onscreen);
     animation_set_duration((Animation*) in, ANIM_DURATION_IN);

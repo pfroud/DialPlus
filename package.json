@@ -1,0 +1,46 @@
+{
+    "author": "Peter Froud",
+    "dependencies": {},
+    "keywords": [],
+    "name": "dial-plus",
+    "pebble": {
+        "capabilities": [
+            ""
+        ],
+        "displayName": "Dial Plus",
+        "enableMultiJS": true,
+        "messageKeys": [],
+        "projectType": "native",
+        "resources": {
+            "media": [
+                {
+                    "file": "images/menu_image_new.png",
+                    "menuIcon": true,
+                    "name": "menu_image_new",
+                    "targetPlatforms": null,
+                    "type": "bitmap"
+                },
+                {
+                    "file": "images/menu_image.png",
+                    "name": "menu_image",
+                    "targetPlatforms": null,
+                    "type": "png"
+                },
+                {
+                    "file": "fonts/Medium.ttf",
+                    "name": "MEDIUM_14",
+                    "type": "font"
+                }
+            ]
+        },
+        "sdkVersion": "3",
+        "targetPlatforms": [
+            "basalt"
+        ],
+        "uuid": "912e8d32-2f62-4092-b005-a40cfc9a6f15",
+        "watchapp": {
+            "watchface": true
+        }
+    },
+    "version": "0.5.0"
+}

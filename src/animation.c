@@ -22,6 +22,8 @@ void init_anim_frames(){
 }
 
 void animate_batt_bar(){
+    
+    // all of these PropertyAnimations should only by allocated once!!
     PropertyAnimation *in = property_animation_create_layer_frame(
         (Layer*) layer_batt_bar, &frame_batt_bar_offscreen, &frame_batt_bar_onscreen);
     animation_set_duration((Animation*) in, ANIM_DURATION_IN);

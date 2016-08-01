@@ -39,7 +39,8 @@ void main_window_load(Window *window) {
     
     
     // DATE
-    GFont date_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_MEDIUM_14));
+    // change this to use a system font - https://developer.pebble.com/guides/app-resources/system-fonts/
+    GFont date_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_MEDIUM_14)); 
     layer_date = text_layer_create(frame_date_offscreen);
     text_layer_set_text_alignment(layer_date, GTextAlignmentCenter);
     text_layer_set_text_color(layer_date, GColorWhite);

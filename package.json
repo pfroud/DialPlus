@@ -14,17 +14,11 @@
         "resources": {
             "media": [
                 {
-                    "file": "images/menu_image_new.png",
-                    "menuIcon": true,
-                    "name": "menu_image_new",
-                    "targetPlatforms": null,
-                    "type": "bitmap"
-                },
-                {
                     "file": "images/menu_image.png",
+                    "menuIcon": true,
                     "name": "menu_image",
                     "targetPlatforms": null,
-                    "type": "png"
+                    "type": "bitmap"
                 },
                 {
                     "file": "fonts/Medium.ttf",

@@ -104,7 +104,7 @@ void init_drawing_shapes() {
 /**
  * Draws the needle.
  *
- * @param layer [remove this parameter]
+ * @param layer the layer that needs to be rendered
  * @param ctx the destination graphics context in which to draw
  */
 void draw_needle(Layer *layer, GContext *ctx) {
@@ -115,7 +115,7 @@ void draw_needle(Layer *layer, GContext *ctx) {
 /**
  * Draws a calendar event mark. Experimental and not used.
  *
- * @param layer [remove this parameter]
+ * @param layer the layer that needs to be rendered
  * @param ctx the destination graphics context in which to draw
  */
 void draw_event_mark(Layer *layer, GContext *ctx) {
@@ -159,7 +159,7 @@ void draw_event_mark(Layer *layer, GContext *ctx) {
 /**
  * Draws the battery bar.
  *
- * @param layer [remove this parameter]
+ * @param layer the layer that needs to be rendered
  * @param ctx the destination graphics context in which to draw
  */
 void draw_batt_bar(Layer *layer, GContext *ctx) {
@@ -211,7 +211,7 @@ void draw_tick(GContext *ctx, struct tm *tick_location) {
 /**
  * Draws the layer containing the hour numbers and ticks.
  *
- * @param layer [remove this parameter]
+ * @param layer the layer that needs to be rendered
  * @param ctx the destination graphics context in which to draw
  */
 void draw_time_layer(Layer *layer, GContext *ctx) {

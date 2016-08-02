@@ -25,10 +25,11 @@ GFont font_label;
 //////// PRIVATE ////////
 
 /**
+ * Converts a time to the corresponding x coordinate on the watchface.
  *
- * @param current
- * @param convertee
- * @return
+ * @param current the current time
+ * @param convertee the time to convert to an x coordinate
+ * @return the x coordinate of the time
  */
 static int time_to_x_pos(struct tm *current, struct tm *convertee) {
     // Built-in difftime func is bad. https://developer.pebble.com/docs/c/Standard_C/Time/#difftime
@@ -38,9 +39,10 @@ static int time_to_x_pos(struct tm *current, struct tm *convertee) {
 }
 
 /**
+ * Corrects minutes being negative or greater than 59.
  *
- * @param input
- * @return
+ * @param input time which may need to wrap around
+ * @return time the time which has been wrapped around
  */
 static struct tm wrap_time(struct tm input) {
     if (input.tm_min > 59) {
@@ -55,10 +57,11 @@ static struct tm wrap_time(struct tm input) {
 }
 
 /**
+ * Gets the previous or next time where the minute is a multiple of ten.
  *
- * @param t_old
- * @param up
- * @return
+ * @param t_old the original time
+ * @param up true to go forward, false to go backwards
+ * @return the time where minute is a multiple of ten
  */
 static struct tm closest_multiple_of_ten(struct tm *t_old, bool up) {
     struct tm t_new = *t_old; //makes a copy of t_old
@@ -74,18 +77,15 @@ static struct tm closest_multiple_of_ten(struct tm *t_old, bool up) {
 }
 
 /**
+ * Gets the time where a tick goes, given a tick is at current_time.
  *
- * @param current_time
- * @param up
- * @return
+ * @param current_time the time from which to get the next time
+ * @param up true to go forward, false to go backwards
+ * @return the time where the next tick goes
  */
 static struct tm get_next_time(struct tm current_time, bool up) {
     struct tm next_time = current_time; //makes a copy of current_time
-
-    // TODO wrap at 1 and 12
-
     next_time.tm_min += (up ? 10 : -10);
-
     return wrap_time(next_time);
 }
 
@@ -94,7 +94,7 @@ static struct tm get_next_time(struct tm current_time, bool up) {
 //////// PUBLIC ////////
 
 /**
- *
+ * Sets up shapes which will be used for drawing.
  */
 void init_drawing_shapes() {
     time_now = (struct tm) {.tm_year=116, .tm_mon=4, .tm_mday=5, .tm_hour=3, .tm_min=15, .tm_wday=4};
@@ -102,9 +102,10 @@ void init_drawing_shapes() {
 }
 
 /**
+ * Draws the needle.
  *
- * @param layer
- * @param ctx
+ * @param layer [remove this parameter]
+ * @param ctx the destination graphics context in which to draw
  */
 void draw_needle(Layer *layer, GContext *ctx) {
     graphics_context_set_fill_color(ctx, GColorOrange);
@@ -112,13 +113,12 @@ void draw_needle(Layer *layer, GContext *ctx) {
 }
 
 /**
+ * Draws a calendar event mark. Experimental and not used.
  *
- * @param layer
- * @param ctx
+ * @param layer [remove this parameter]
+ * @param ctx the destination graphics context in which to draw
  */
 void draw_event_mark(Layer *layer, GContext *ctx) {
-
-    //int abs = difference * ((difference>0) - (difference<0)); // http://stackoverflow.com/a/9772491
 
     struct tm event_start = (struct tm) {.tm_year=116, .tm_mon=4, .tm_mday=5, .tm_hour=3, .tm_min=25, .tm_wday=4};
     struct tm event_end = (struct tm) {.tm_year=116, .tm_mon=4, .tm_mday=5, .tm_hour=3, .tm_min=40, .tm_wday=4};
@@ -129,9 +129,8 @@ void draw_event_mark(Layer *layer, GContext *ctx) {
     #define MARK_HEIGHT 8
     #define MARK_THICKNESS 2
 
-
-    graphics_context_set_fill_color(ctx,
-                                    GColorCyan); // https://developer.pebble.com/guides/tools-and-resources/color-picker/
+    // https://developer.pebble.com/guides/tools-and-resources/color-picker/
+    graphics_context_set_fill_color(ctx, GColorCyan);
     graphics_fill_rect(ctx, GRect(x_start, -MARK_HEIGHT - 2, MARK_THICKNESS, MARK_HEIGHT), 0, GCornerNone);
     graphics_fill_rect(ctx, GRect(x_end, -MARK_HEIGHT - 2, MARK_THICKNESS, MARK_HEIGHT), 0, GCornerNone);
     graphics_fill_rect(ctx, GRect(x_start, -MARK_HEIGHT - 2, x_end - x_start, MARK_THICKNESS), 0, GCornerNone);
@@ -144,13 +143,11 @@ void draw_event_mark(Layer *layer, GContext *ctx) {
     #define TRI_H 10
 
     GPathInfo tri_path_info = {
-            .num_points = 3,
-            //                      left      right          bottom
-            .points = (GPoint[]) {{0,     0},
-                                  {TRI_W, 0},
-                                  {TRI_W / 2, TRI_H}}
+            .num_points = 3, //    left      right          bottom
+            .points = (GPoint[]) {{0, 0}, {TRI_W, 0}, {TRI_W / 2, TRI_H}}
     };
     tri_path = gpath_create(&tri_path_info);
+
 
     gpath_move_to(tri_path, GPoint(x_start - TRI_W / 2, -TRI_H));
     graphics_context_set_fill_color(ctx, GColorCyan);
@@ -160,9 +157,10 @@ void draw_event_mark(Layer *layer, GContext *ctx) {
 }
 
 /**
+ * Draws the battery bar.
  *
- * @param layer
- * @param ctx
+ * @param layer [remove this parameter]
+ * @param ctx the destination graphics context in which to draw
  */
 void draw_batt_bar(Layer *layer, GContext *ctx) {
     int batt = batt_level;
@@ -177,9 +175,10 @@ void draw_batt_bar(Layer *layer, GContext *ctx) {
 }
 
 /**
+ * Draws one tick.
  *
- * @param ctx
- * @param tick_location
+ * @param ctx the destination graphics context in which to draw
+ * @param tick_location the time to draw the tick for
  */
 void draw_tick(GContext *ctx, struct tm *tick_location) {
     int x = time_to_x_pos(&time_now, tick_location);
@@ -210,9 +209,10 @@ void draw_tick(GContext *ctx, struct tm *tick_location) {
 }
 
 /**
+ * Draws the layer containing the hour numbers and ticks.
  *
- * @param layer
- * @param ctx
+ * @param layer [remove this parameter]
+ * @param ctx the destination graphics context in which to draw
  */
 void draw_time_layer(Layer *layer, GContext *ctx) {
     graphics_context_set_fill_color(ctx, GColorWhite);
@@ -228,14 +228,10 @@ void draw_time_layer(Layer *layer, GContext *ctx) {
     time_t ts_max = ts_now + SECONDS_PER_MINUTE * 30;
     time_t ts_min = ts_now - SECONDS_PER_MINUTE * 30;
 
-    for (struct tm active = get_next_time(left, false);
-         mktime(&active) >= ts_min; active = get_next_time(active, false))
-        draw_tick(ctx, &active);
-    for (struct tm active = get_next_time(right, true);
-         mktime(&active) <= ts_max; active = get_next_time(active, true))
-        draw_tick(ctx, &active);
+    for (struct tm curr = get_next_time(left, false); mktime(&curr) >= ts_min; curr = get_next_time(curr, false))
+        draw_tick(ctx, &curr);
 
+    for (struct tm curr = get_next_time(right, true); mktime(&curr) <= ts_max; curr = get_next_time(curr, true))
+        draw_tick(ctx, &curr);
 
 }
-
-

@@ -11,24 +11,27 @@ GRect frame_batt_percent_onscreen, frame_batt_percent_offscreen;
 bool isAnimating = 0;
 
 /**
- *
+ * Creates the frames where watchface features animate between.
  */
 void init_anim_frames() {
     frame_date_onscreen = GRect(SCREEN_WIDTH / 2 + 2, 20, SCREEN_WIDTH / 2 - 2, 25);
-    frame_date_offscreen = (GRect) {.origin = GPoint(frame_date_onscreen.origin.x,
-                                                     -50), .size = frame_date_onscreen.size};
+    frame_date_offscreen = (GRect)
+            {.origin = GPoint(frame_date_onscreen.origin.x, -50),
+                    .size = frame_date_onscreen.size};
 
     frame_batt_bar_onscreen = GRect(0, SCREEN_HEIGHT - BAR_THICKNESS, SCREEN_WIDTH, BAR_THICKNESS);
-    frame_batt_bar_offscreen = (GRect) {.origin = GPoint(frame_batt_bar_onscreen.origin.x,
-                                                         SCREEN_HEIGHT + 30), .size = frame_batt_bar_onscreen.size};
+    frame_batt_bar_offscreen = (GRect)
+            {.origin = GPoint(frame_batt_bar_onscreen.origin.x, SCREEN_HEIGHT + 30),
+                    .size = frame_batt_bar_onscreen.size};
 
     frame_batt_percent_onscreen = GRect(3, SCREEN_HEIGHT - BAR_THICKNESS - 22, 50, 20);
-    frame_batt_percent_offscreen = (GRect) {.origin = GPoint(frame_batt_percent_onscreen.origin.x, SCREEN_HEIGHT +
-                                                                                                   30), .size = frame_batt_percent_onscreen.size};
+    frame_batt_percent_offscreen = (GRect)
+            {.origin = GPoint(frame_batt_percent_onscreen.origin.x, SCREEN_HEIGHT + 30),
+                    .size = frame_batt_percent_onscreen.size};
 }
 
 /**
- *
+ * Animates the battery bar in and out.
  */
 void animate_batt_bar() {
 
@@ -48,7 +51,7 @@ void animate_batt_bar() {
 }
 
 /**
- *
+ * Animates the battery percentage in and out.
  */
 void animate_batt_percent() {
     PropertyAnimation *in = property_animation_create_layer_frame(
@@ -66,7 +69,7 @@ void animate_batt_percent() {
 }
 
 /**
- *
+ * Animates the date in and out.
  */
 void animate_date() {
     PropertyAnimation *in = property_animation_create_layer_frame(
@@ -88,9 +91,9 @@ void animate_date() {
 
 /**
  *
- * @param animation
- * @param finished
- * @param context
+ * @param animation the animation that was stopped
+ * @param finished whether the animation was stopped because it was finished normally
+ * @param context "a pointer to application specific data" passed by the animation subsystem
  */
 void animation_stopped_handler(Animation *animation, bool finished, void *context) {
     isAnimating = 0;

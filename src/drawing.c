@@ -90,15 +90,15 @@ void draw_event_mark(Layer *layer, GContext *ctx) {
     int x_start = time_to_x_pos(&time_now, &event_start);
     int x_end   = time_to_x_pos(&time_now, &event_end);
     
-    #define MARK_HEIGHT 10
+    #define MARK_HEIGHT 8
     #define MARK_THICKNESS 2
     
-    //GRect bounds = layer_get_bounds(layer_event_mark);
+   
     /*
     graphics_context_set_fill_color(ctx, GColorCyan); // https://developer.pebble.com/guides/tools-and-resources/color-picker/
-    graphics_fill_rect(ctx, GRect(x_start, -MARK_HEIGHT-1, MARK_THICKNESS, MARK_HEIGHT), 0, GCornerNone);
-    graphics_fill_rect(ctx, GRect(x_end,   -MARK_HEIGHT-1, MARK_THICKNESS, MARK_HEIGHT), 0, GCornerNone);
-    graphics_fill_rect(ctx, GRect(x_start, -MARK_HEIGHT-1,  x_end-x_start, MARK_THICKNESS), 0, GCornerNone);
+    graphics_fill_rect(ctx, GRect(x_start, -MARK_HEIGHT-2, MARK_THICKNESS, MARK_HEIGHT), 0, GCornerNone);
+    graphics_fill_rect(ctx, GRect(x_end,   -MARK_HEIGHT-2, MARK_THICKNESS, MARK_HEIGHT), 0, GCornerNone);
+    graphics_fill_rect(ctx, GRect(x_start, -MARK_HEIGHT-2,  x_end-x_start, MARK_THICKNESS), 0, GCornerNone);
     */
     
     graphics_context_set_fill_color(ctx, GColorCadetBlue);
@@ -106,6 +106,7 @@ void draw_event_mark(Layer *layer, GContext *ctx) {
     
     #define TRI_W 10
     #define TRI_H 10
+    /*
     GPathInfo tri_path_info = {
         .num_points = 3,
         //                      left      right          bottom
@@ -113,9 +114,10 @@ void draw_event_mark(Layer *layer, GContext *ctx) {
     };
     tri_path = gpath_create(&tri_path_info);
     
-    gpath_move_to(tri_path, GPoint(30, -TRI_H));
+    gpath_move_to(tri_path, GPoint(x_start-TRI_W/2, -TRI_H));
     graphics_context_set_fill_color(ctx, GColorCyan);
     gpath_draw_filled(ctx, tri_path);
+    */
     
 }
 

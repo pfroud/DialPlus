@@ -28,7 +28,7 @@ void handler_batt(BatteryChargeState state) {
     layer_mark_dirty(text_layer_get_layer(layer_batt_percent));
 }
 
-void update_day(struct tm *tick_time) {
+static void update_day(struct tm *tick_time) {
     static char buffer[7]; //needs static
     snprintf(buffer, sizeof(buffer), "%s %d", days_of_week[tick_time->tm_wday], tick_time->tm_mday);
     text_layer_set_text(layer_date, buffer);

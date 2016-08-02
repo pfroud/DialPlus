@@ -12,7 +12,7 @@ TextLayer *layer_date, *layer_batt_percent;
 Layer *layer_needle, *layer_batt_bar, *layer_event_mark, *layer_time;
 
 
-void main_window_load(Window *window) {
+static void main_window_load(Window *window) {
     Layer *window_layer = window_get_root_layer(window);
     GRect bounds = layer_get_bounds(window_layer);
     
@@ -62,7 +62,7 @@ void main_window_load(Window *window) {
     
 }
 
-void main_window_unload(Window *window) {
+static void main_window_unload(Window *window) {
     layer_destroy(layer_batt_bar);
     layer_destroy(layer_needle);
     layer_destroy(layer_event_mark);
@@ -71,7 +71,7 @@ void main_window_unload(Window *window) {
     text_layer_destroy(layer_date);
 }
 
-void init() {
+static void init() {
        
     Window *main_window = window_create();
     window_set_background_color(main_window, GColorBlack);
@@ -98,7 +98,7 @@ void init() {
     
 }
 
-void deinit() {
+static void deinit() {
     window_destroy(main_window);
 }
 

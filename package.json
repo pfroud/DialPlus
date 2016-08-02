@@ -19,11 +19,6 @@
                     "name": "menu_image",
                     "targetPlatforms": null,
                     "type": "bitmap"
-                },
-                {
-                    "file": "fonts/Medium.ttf",
-                    "name": "MEDIUM_14",
-                    "type": "font"
                 }
             ]
         },

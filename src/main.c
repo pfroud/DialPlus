@@ -15,7 +15,6 @@ Layer *layer_needle, *layer_batt_bar, *layer_event_mark, *layer_time;
 void main_window_load(Window *window) {
     Layer *window_layer = window_get_root_layer(window);
     GRect bounds = layer_get_bounds(window_layer);
-    GFont the_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_MEDIUM_14));
     
     // EVENT MARK
     layer_event_mark = layer_create(GRect(0, 84, SCREEN_WIDTH, 21));
@@ -38,8 +37,8 @@ void main_window_load(Window *window) {
     
     // DATE
     layer_date = text_layer_create(frame_date_offscreen);
-    text_layer_set_font(layer_date, the_font);
-    text_layer_set_text(layer_date, "MMM DD");
+    text_layer_set_font(layer_date, fonts_get_system_font(FONT_KEY_GOTHIC_18));
+    text_layer_set_text(layer_date, "WWW DD");
     text_layer_set_text_alignment(layer_date, GTextAlignmentCenter);
     text_layer_set_background_color(layer_date, GColorClear);
     text_layer_set_text_color(layer_date, GColorWhite);
@@ -55,7 +54,7 @@ void main_window_load(Window *window) {
     // BATTERY PERCENT
     layer_batt_percent = text_layer_create(frame_batt_percent_offscreen);
     text_layer_set_text(layer_batt_percent, "000%");
-    text_layer_set_font(layer_batt_percent, the_font);
+    text_layer_set_font(layer_batt_percent, fonts_get_system_font(FONT_KEY_GOTHIC_18));
     text_layer_set_text_alignment(layer_batt_percent, GTextAlignmentLeft);
     text_layer_set_background_color(layer_batt_percent, GColorClear);
     text_layer_set_text_color(layer_batt_percent, GColorWhite);

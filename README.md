@@ -4,13 +4,13 @@
 A [Pebble](https://www.pebble.com) watchface based on [Priyesh Patel's](http://priyesh.me/) superb watchface Dial ([source](https://github.com/ItsPriyesh/Dial), [appstore](https://apps.getpebble.com/en_US/application/56512a8ba69d971f08000038)).
 
 <p align="center" style="text-align: center">
-![Dial on a Pebble Steel](readme_images/pebble_steel.png)
+<img src="readme_images/pebble_steel.png" alt="Dial watchface on a Pebble Steel">
 </p>
 
 Dial Plus shows the time simply. When you flick your wrist, battery information and the date appear.
 
 <p align="center" style="text-align: center">
-![Layers of Dial Plus watchface](readme_images/layers.png)
+<img src="readme_images/layers.png" alt="Layers of Dial Plus watchface">
 </p>
 
 ## Issues addressed
@@ -20,7 +20,7 @@ Dial Plus shows the time simply. When you flick your wrist, battery information 
 After 6:00, the needle doesn't correctly line up with the ticks on the dial:
 
 <p align="center" style="text-align: center">
-![Incorrect alignment after 6:00](readme_images/alignment.png)
+<img src="readme_images/alignment.png" alt="Incorrect needle alignment after 6:00">
 </p>
 
 The original dial has a background image ([`background.png`](https://github.com/ItsPriyesh/Dial/blob/master/resources/background.png)) which is positioned so the needle points to the correct time.
@@ -28,7 +28,7 @@ The original dial has a background image ([`background.png`](https://github.com/
 There are 10 minutes between ticks. Both the needle and the ticks are 2 pixels wide, so there should be 20 pixels between ticks. However, there are only 19 pixels:
 
 <p align="center" style="text-align: center">
-![Not enough space between ticks](readme_images/spacing.png)
+<img src="readme_images/spacing.png" alt="Not enough space between ticks">
 </p>
 
 
@@ -61,7 +61,7 @@ Since those are integers (and the Pebble only has floating-point emulation), inf
 I replaced Helvetica with [Raster Gothic](https://developer.pebble.com/guides/app-resources/system-fonts/#raster-gothic) from the Pebble SDK.
 
 <p align="center" style="text-align: center">
-![Comparison of Helvetica Neue and Raster Gothic](readme_images/font_compare.png)
+<img src="readme_images/font_compare.png" alt="Comparison of Helvetica Neue and Raster Gothic fonts">
 </p>
 
 
@@ -73,7 +73,7 @@ I replaced Helvetica with [Raster Gothic](https://developer.pebble.com/guides/ap
 When you shake your wrist, Dial Plus shows your watch's battery status.
 
 <p align="center" style="text-align: center">
-![Battery display](readme_images/battery.png)
+<img src="readme_images/battery.png" alt="Battery display">
 </p>
 
 ### Calendar events (incomplete)
@@ -81,7 +81,7 @@ When you shake your wrist, Dial Plus shows your watch's battery status.
 I wanted to show upcoming calendar events on the dial, using one of these styles:
 
 <p align="center" style="text-align: center">
-![Possible event mark styles](readme_images/event_marks.png)
+<img src="readme_images/event_marks.png" alt="Possible event mark styles">
 </p>
 
 

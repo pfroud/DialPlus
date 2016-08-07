@@ -225,8 +225,8 @@ void draw_time_layer(Layer *layer, GContext *ctx) {
     draw_tick(ctx, &right);
 
     time_t ts_now = mktime(&time_now);
-    time_t ts_max = ts_now + SECONDS_PER_MINUTE * 30;
-    time_t ts_min = ts_now - SECONDS_PER_MINUTE * 30;
+    time_t ts_max = ts_now + SECONDS_PER_MINUTE * 35;
+    time_t ts_min = ts_now - SECONDS_PER_MINUTE * 35;
 
     for (struct tm curr = get_next_time(left, false); mktime(&curr) >= ts_min; curr = get_next_time(curr, false))
         draw_tick(ctx, &curr);

@@ -1,4 +1,8 @@
 not-for-git/
+.idea/
+*.cpp
+CMakeLists.txt
+*.lnk
 
 
 # Ignore build generated files

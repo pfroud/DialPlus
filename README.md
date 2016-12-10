@@ -50,14 +50,14 @@ static void draw_clock(struct tm *tick_time) {
 ```
 The background image goes from 0 to 12 hours, so twice the background width is 24 hours. Consequently, the term `BACKGROUND_WIDTH * 2 / mins_in_day`  equals the number of pixels per minute.
 
-Both he ticks and the needle are 2 pixels wide, so the number of pixels per minute should be exactly 2. `BACKGROUND_WIDTH` is [1366 pixels](https://github.com/ItsPriyesh/Dial/blob/master/src/Dial.c#L3), so
+Both the ticks and the needle are 2 pixels wide, so the number of pixels per minute should be exactly 2. `BACKGROUND_WIDTH` is [1366 pixels](https://github.com/ItsPriyesh/Dial/blob/master/src/Dial.c#L3), so
 
 ```
   BACKGROUND_WIDTH * 2 / mins_in_day
 = 1366 * 2 / 1440
 = 1.897222
 ```
-which is not 2. The Pebble's hardware cannot do floating point numbers.
+which is not 2. (The Pebble's hardware cannot do floating point numbers.)
 
 
 ### Font licence
@@ -69,11 +69,11 @@ The original font, [`Medium.ttf`](https://github.com/ItsPriyesh/Dial/blob/master
 </p>
 
 
-The embedded copyright text is so amazingly long I have included it here.
+The embedded copyright text is so amazingly long I have included it below.
  
 >Part of the digitally encoded machine readable outline data for producing the Typefaces provided is  copyrighted © 2003 - 2006 Linotype GmbH, www.linotype.com. All rights reserved. This software is  the property of Linotype GmbH, and may not be reproduced, modified, disclosed or transferred without the express written approval of Linotype GmbH. Copyright © 1988, 1990, 1993 Adobe Systems Incorporated. All Rights Reserved. Helvetica is a trademark of Heidelberger Druckmaschinen AG, exclusively licensed through Linotype GmbH, and may be registered in certain jurisdictions. This typeface is original artwork of Linotype Design Studio. The design may be protected in certain jurisdictions.
 
-(Also, it was very hard to get Windows to let me copy the copyright string. I had to use the [`Get-FileMetaData`](https://gallery.technet.microsoft.com/scriptcenter/get-file-meta-data-function-f9e8d804) PowerShell script script by IamMred from the Microsoft Script Center Repository.)
+(It was very hard to get Windows to let me copy the copyright string. I had to use the [`Get-FileMetaData`](https://gallery.technet.microsoft.com/scriptcenter/get-file-meta-data-function-f9e8d804) PowerShell script script by IamMred from the Microsoft Script Center Repository.)
 
 I replaced Helvetica Neue with [Raster Gothic](https://developer.pebble.com/guides/app-resources/system-fonts/#raster-gothic) from the Pebble SDK.
 
@@ -97,14 +97,14 @@ Strangely, the API only exposes battery percentage in 10% increments.
 
 ### Calendar events (incomplete)
 
-I want to show upcoming Google Calendar events on the dial, using one of these styles:
+I want to show upcoming Google Calendar events on the dial. Here are some style ideas, showing a calendar event from 3:25 to 3:40:
 
 <p align="center" style="text-align: center">
 <img src="readme_images/event_marks.png" alt="Possible event mark styles">
 </p>
 
 
-I know this is possible without a companion app because [My Calendar](https://apps.getpebble.com/en_US/application/5425871e2375286a35000124?dev_settings=1) by Stanfy and [Calendar Cards](http://apps.getpebble.com/en_US/application/55ad0a036749cdddc6000075?dev_settings=1) by Ester Sanchez both do it.
+I know this is possible to interact with Google Calendar without needing a companion phone app because [My Calendar](https://apps.getpebble.com/en_US/application/5425871e2375286a35000124?dev_settings=1) by Stanfy and [Calendar Cards](http://apps.getpebble.com/en_US/application/55ad0a036749cdddc6000075?dev_settings=1) by Ester Sanchez both do it.
 
 It turns out it's a real pain in the ass. I would need to write the interaction with Google's calendar API from scratch. There are [at least](https://github.com/pebble/slate) [two](https://developer.pebble.com/blog/2016/06/24/introducing-clay/) frameworks for doing watchface configuration, both poorly documented and neither supported by CloudPebble (the online SDK).  There are not enough other libraries to make it worthwhile.
 

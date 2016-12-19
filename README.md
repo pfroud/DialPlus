@@ -4,7 +4,7 @@
 A [Pebble](https://www.pebble.com) watchface based on [Priyesh Patel's](http://priyesh.me/) superb watchface Dial ([source](https://github.com/ItsPriyesh/Dial), [Pebble appstore](https://apps.getpebble.com/en_US/application/56512a8ba69d971f08000038)).
 
 <p align="center" style="text-align: center">
-<img src="readme_images/pebble_steel.png" alt="Dial watchface on a Pebble Steel" width="700px">
+<img src="readme_images/pebble_steel.png?raw=true" alt="Dial watchface on a Pebble Steel" width="700px">
 </p>
 
 Dial Plus shows the time simply. When you flick your wrist, battery information and the date appear.
@@ -12,7 +12,7 @@ Dial Plus shows the time simply. When you flick your wrist, battery information 
 Here are the five logical [layer](https://developer.pebble.com/docs/c/User_Interface/Layers/)s expanded. From top to bottom: battery percent, battery bar, date, needle, dial, background.
 
 <p align="center" style="text-align: center">
-<img src="readme_images/layers.png" alt="Layers of Dial Plus watchface">
+<img src="readme_images/layers.png?raw=true" alt="Layers of Dial Plus watchface">
 </p>
 
 ## Issues addressed
@@ -26,7 +26,7 @@ After 6:00pm, the needle doesn't line up correctly with the ticks on the dial.
 In the screenshots below, the entire watchface is shown on the left and a zoomed-in region around the needle is shown on the right. The digital clocks are the watchface itself drawing what time it thinks it is; I did not add them after taking the screenshots.
 
 <p align="center" style="text-align: center">
-<img src="readme_images/alignment.png" alt="Incorrect needle alignment after 6:00pm">
+<img src="readme_images/alignment.png?raw=true" alt="Incorrect needle alignment after 6:00pm">
 </p>
 
 The original Dial has a  single [background image](https://github.com/ItsPriyesh/Dial/blob/master/resources/background.png) with numbers from 1 to 12, which is positioned so the needle points to the correct time.
@@ -36,7 +36,7 @@ There are 10 minutes between any two adjacent ticks. Both the needle and the tic
 But the ticks are 1 pixel too close to each other. In the picture below, I zoom on two adjacent ticks, show the pixel grid, and illustrate where the needle should be at 1:00 through 1:10. As you can see, there's not enough room.
 
 <p align="center" style="text-align: center">
-<img src="readme_images/spacing.png" alt="Not enough space between ticks">
+<img src="readme_images/spacing.png?raw=true" alt="Not enough space between ticks">
 </p>
 
 
@@ -65,7 +65,7 @@ which is not 2. (The Pebble's hardware cannot do floating point numbers.)
 The original font, [`Medium.ttf`](https://github.com/ItsPriyesh/Dial/blob/master/resources/Medium.ttf), is [Helvetica Neue](https://www.linotype.com/1245395/neue-helvetica-family.html), which is not free. The file even has multiple fields of copyright metadata intact:
 
 <p align="center" style="text-align: center">
-<img src="readme_images/Medium.ttf-properties.png" alt="[Helvetica Neue copyright metadata">
+<img src="readme_images/Medium.ttf-properties.png?raw=true" alt="[Helvetica Neue copyright metadata">
 </p>
 
 
@@ -80,7 +80,7 @@ I replaced Helvetica Neue with [Raster Gothic](https://developer.pebble.com/guid
 Below, Helvetica Neue is on the left and Raster Gothic is on the right.
 
 <p align="center" style="text-align: center">
-<img src="readme_images/font_compare.png" alt="Comparison of Helvetica Neue and Raster Gothic fonts">
+<img src="readme_images/font_compare.png?raw=true" alt="Comparison of Helvetica Neue and Raster Gothic fonts">
 </p>
 
 ## Features added
@@ -90,7 +90,7 @@ Below, Helvetica Neue is on the left and Raster Gothic is on the right.
 When you shake your wrist, Dial Plus displays the battery percentage and a colored bar. 
 
 <p align="center" style="text-align: center">
-<img src="readme_images/battery.png" alt="Battery display">
+<img src="readme_images/battery.png?raw=true" alt="Battery display">
 </p>
 
 Strangely, the API only exposes battery percentage in 10% increments.
@@ -100,7 +100,7 @@ Strangely, the API only exposes battery percentage in 10% increments.
 I want to show upcoming Google Calendar events on the dial. Here are some style ideas, showing a calendar event from 3:25 to 3:40:
 
 <p align="center" style="text-align: center">
-<img src="readme_images/event_marks.png" alt="Possible event mark styles">
+<img src="readme_images/event_marks.png?raw=true" alt="Possible event mark styles">
 </p>
 
 

@@ -108,6 +108,16 @@ I know this is possible to interact with Google Calendar without needing a compa
 
 It turns out it's a real pain in the ass. I would need to write the interaction with Google's calendar API from scratch. There are [at least](https://github.com/pebble/slate) [two](https://developer.pebble.com/blog/2016/06/24/introducing-clay/) frameworks for doing watchface configuration, both poorly documented and neither supported by CloudPebble (the online SDK).  There are not enough other libraries to make it worthwhile.
 
+It also turns out a similar feature was added to the Pebble firmware in version 4.0. [Timeline Quick View ](https://developer.pebble.com/blog/2016/08/19/prime-time-is-approaching-for-os-4.0#timeline-quick-view) can show an upcoming event on the bottom of the watchface. Here's what it looks like if have an event called Pokemon Go starting in eleven minutes:
+
+
+<p align="center" style="text-align: center">
+<img src="readme_images/timeline_quick_view.png?raw=true" alt="Timeline Quick View">
+</p>
+
+I use this feature a lot and am glad it was added.
+
+
 ### Organization
 
 All the code was originally in a single 149-line file, [`Dial.c`](https://github.com/ItsPriyesh/Dial/blob/master/src/Dial.c), which was a bit hard to read.

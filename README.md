@@ -42,7 +42,7 @@ But the ticks are 1 pixel too close to each other. In the picture below, I zoom 
 
 I believe a secondary problem involves integer division. Here's Priyesh's [code](https://github.com/ItsPriyesh/Dial/blob/master/src/Dial.c#L56-L59) to compute the offset of the background image:
 
-```
+```c
 static void draw_clock(struct tm *tick_time) {
     ...
     const int64_t background_x_offset = mins_since_midnight * BACKGROUND_WIDTH * 2 / mins_in_day;

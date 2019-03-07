@@ -7,7 +7,7 @@ A [Pebble](https://www.pebble.com) watchface based on [Priyesh Patel's](http://p
 <img src="readme_images/pebble_steel.png?raw=true" alt="Dial watchface on a Pebble Steel" width="700px">
 </p>
 
-Dial Plus shows the time simply. When you flick your wrist, battery information and the date appear.
+Dial Plus shows the time without fanfare. The watchface is unobstructive and simple. When you flick your wrist, battery information and the date appear.
 
 Here are the five logical [layer](https://developer.pebble.com/docs/c/User_Interface/Layers/)s expanded. From top to bottom: battery percent, battery bar, date, needle, dial, background.
 
@@ -23,7 +23,7 @@ The original Dial is my favorite watchface. I only found a few small things to i
 
 After 6:00pm, the needle doesn't line up correctly with the ticks on the dial.
 
-In the screenshots below, the entire watchface is shown on the left and a zoomed-in region around the needle is shown on the right. The digital clocks are the watchface itself drawing what time it thinks it is; I did not add them after taking the screenshots.
+In the screenshots below, the entire watchface is shown on the left and a zoomed-in region around the needle is shown on the right. At 6:00, the red line is perfectly aligned with the gray tick. But on hours after 6:00, the red line is one pixel out of alignment. The digital clocks are the watchface itself drawing what time it thinks it is; I did not add them after taking the screenshots.
 
 <p align="center" style="text-align: center">
 <img src="readme_images/alignment.png?raw=true" alt="Incorrect needle alignment after 6:00pm">
@@ -31,9 +31,9 @@ In the screenshots below, the entire watchface is shown on the left and a zoomed
 
 The original Dial has a  single [background image](https://github.com/ItsPriyesh/Dial/blob/master/resources/background.png) with numbers from 1 to 12, which is positioned so the needle points to the correct time.
 
-There are 10 minutes between any two adjacent ticks. Both the needle and the ticks are 2 pixels wide, so there should be 20 pixels between ticks.
+There are 10 minutes between any two adjacent ticks. The red needle and the gray ticks are all 2 pixels wide, so there should be 20 pixels between ticks.
 
-But the ticks are 1 pixel too close to each other. In the picture below, I zoom on two adjacent ticks, show the pixel grid, and illustrate where the needle should be at 1:00 through 1:10. As you can see, there's not enough room.
+But the ticks are one pixel too close to each other. In the picture below, I zoom on two adjacent ticks, show the pixel grid, and illustrate where the needle should be at 1:00 through 1:10. As you can see, there's not enough room.
 
 <p align="center" style="text-align: center">
 <img src="readme_images/spacing.png?raw=true" alt="Not enough space between ticks">
